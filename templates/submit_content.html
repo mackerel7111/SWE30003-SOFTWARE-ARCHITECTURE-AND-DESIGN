@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Content | Pet First Aid{% endblock %}
+
+{% block content %}
+<h1 class="h3">Submit Content</h1>
+<p class="text-muted">Veterinary partner workflow: submit proposed first-aid content for staff review.</p>
+
+{% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+{% endif %}
+
+<form method="post" class="card">
+    <div class="card-body">
+        <input class="form-control mb-2" name="request_id" placeholder="Request ID" required>
+        <input class="form-control mb-2" name="submitted_by" placeholder="Veterinary Partner ID" required>
+        <input class="form-control mb-2" name="guide_id" placeholder="Guide ID" required>
+        <input class="form-control mb-2" name="emergency_category" placeholder="Emergency Category" required>
+        <textarea class="form-control mb-2" name="steps" rows="4" placeholder="Steps, one per line" required></textarea>
+        <textarea class="form-control mb-2" name="warnings" rows="3" placeholder="Warnings, one per line" required></textarea>
+        <button class="btn btn-primary" type="submit">Submit for Moderation</button>
+        <a class="btn btn-outline-secondary" href="{{ url_for('moderation') }}">View Moderation Queue</a>
+    </div>
+</form>
+{% endblock %}

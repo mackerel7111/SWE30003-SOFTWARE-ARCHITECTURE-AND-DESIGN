@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Alerts | Pet First Aid{% endblock %}
+
+{% block content %}
+<h1 class="h3">Regional Alerts</h1>
+<p class="text-muted">Staff can create alerts; owners can fetch alerts by region.</p>
+
+{% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+{% endif %}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <form method="post" class="card">
+            <div class="card-body">
+                <h2 class="h5">Create Alert</h2>
+                <input type="hidden" name="action" value="create">
+                <input class="form-control mb-2" name="alert_id" placeholder="Alert ID" required>
+                <input class="form-control mb-2" name="title" placeholder="Title" required>
+                <textarea class="form-control mb-2" name="message" placeholder="Message" required></textarea>
+                <input class="form-control mb-2" name="target_region" placeholder="Target Region" required>
+                <select class="form-select mb-2" name="urgency_level">
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                </select>
+                <button class="btn btn-primary" type="submit">Create</button>
+                <a class="btn btn-outline-secondary" href="{{ url_for('moderation') }}">Go to Moderation</a>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <form method="post" class="card">
+            <div class="card-body">
+                <h2 class="h5">Fetch Alerts</h2>
+                <input type="hidden" name="action" value="fetch">
+                <input class="form-control mb-2" name="region" value="{{ region }}" placeholder="Region" required>
+                <button class="btn btn-primary" type="submit">Fetch</button>
+                <a class="btn btn-outline-secondary" href="{{ url_for('submit_content') }}">Go to Submit Content</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if alerts is not none %}
+    <h2 class="h4 mt-4">Active Alerts</h2>
+    {% if alerts %}
+        {% for alert in alerts %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h3 class="h5">{{ alert.title }}</h3>
+                    <p>{{ alert.message }}</p>
+                    <p>{{ alert.target_region }} | {{ alert.urgency_level }} | {{ alert.date_issued }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">No alerts found.</div>
+    {% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Moderation | Pet First Aid{% endblock %}
+
+{% block content %}
+<h1 class="h3">Moderation Queue</h1>
+<p class="text-muted">Staff workflow: approve or reject pending content submissions.</p>
+
+{% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+{% endif %}
+
+{% if requests %}
+    {% for request in requests %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h2 class="h5">Request {{ request.request_id }}</h2>
+                <p><strong>Submitted by:</strong> {{ request.submitted_by }}</p>
+                <p><strong>Status:</strong> {{ request.status }}</p>
+                <pre>{{ request.proposed_data }}</pre>
+                <form method="post">
+                    <input type="hidden" name="request_id" value="{{ request.request_id }}">
+                    <button class="btn btn-success" name="decision" value="approve" type="submit">Approve</button>
+                    <button class="btn btn-danger" name="decision" value="reject" type="submit">Reject</button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="alert alert-info">No pending requests.</div>
+{% endif %}
+
+<a class="btn btn-outline-secondary" href="{{ url_for('submit_content') }}">Create Another Submission</a>
+{% endblock %}
