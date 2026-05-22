@@ -1,22 +1,249 @@
+/* ── Base ── */
 body {
-    background: #f7f7f7;
+    background: #f4f6f8;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #1a1a2e;
 }
 
-.card {
-    max-width: 900px;
+/* ── Navbar ── */
+.navbar {
+    background: #ffffff !important;
+    border-bottom: 2px solid #e0e7ef !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #2563eb !important;
+    letter-spacing: -0.3px;
+}
+
+.navbar-brand::before {
+    content: "🐾 ";
 }
 
 .navbar-nav .nav-link {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #374151 !important;
+    border-radius: 6px;
+    transition: background 0.15s;
 }
 
-.card:hover {
-    border-color: #86b7fe;
+.navbar-nav .nav-link:hover {
+    background: #eff6ff;
+    color: #2563eb !important;
 }
 
+.navbar-nav .nav-link.text-danger {
+    color: #dc2626 !important;
+}
+
+.navbar-nav .nav-link.text-danger:hover {
+    background: #fef2f2;
+}
+
+/* ── Page headings ── */
+h1.h3 {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #111827;
+    margin-bottom: 0.2rem;
+}
+
+.text-muted {
+    font-size: 0.88rem;
+    margin-bottom: 1.25rem !important;
+}
+
+/* ── Cards ── */
+.card {
+    max-width: 960px;
+    border: 1px solid #e0e7ef;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    background: #ffffff;
+}
+
+.card-body {
+    padding: 1.4rem 1.5rem;
+}
+
+/* Dashboard action cards */
+.dashboard-card {
+    display: block;
+    text-decoration: none;
+    border: 1px solid #e0e7ef;
+    border-radius: 10px;
+    background: #fff;
+    padding: 1.4rem;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+    height: 100%;
+}
+
+.dashboard-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.12);
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.dashboard-card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.35rem;
+}
+
+.dashboard-card p {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 0;
+}
+
+.dashboard-card .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.6rem;
+    display: block;
+}
+
+/* Role badge */
+.role-badge {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 99px;
+    letter-spacing: 0.3px;
+}
+
+.role-badge.owner   { background: #dbeafe; color: #1d4ed8; }
+.role-badge.staff   { background: #d1fae5; color: #065f46; }
+.role-badge.vet     { background: #ede9fe; color: #5b21b6; }
+
+/* ── Forms ── */
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.3rem;
+}
+
+.form-control, .form-select {
+    border-radius: 7px;
+    border-color: #d1d5db;
+    font-size: 0.9rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+}
+
+/* Inline validation */
+.form-control.is-invalid, .form-select.is-invalid {
+    border-color: #ef4444;
+    background-image: none;
+}
+
+.form-control.is-invalid:focus, .form-select.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+}
+
+.invalid-feedback {
+    font-size: 0.8rem;
+    color: #dc2626;
+    margin-top: 0.25rem;
+}
+
+.form-control.is-valid {
+    border-color: #22c55e;
+    background-image: none;
+}
+
+/* ── Buttons ── */
+.btn {
+    border-radius: 7px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.45rem 1rem;
+}
+
+.btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+/* ── Alerts / banners ── */
+.alert {
+    border-radius: 8px;
+    font-size: 0.88rem;
+}
+
+.alert-success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.alert-danger {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.alert-info {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e40af;
+}
+
+.alert-secondary {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+    color: #374151;
+}
+
+/* ── Urgency badges ── */
+.urgency-high   { color: #dc2626; font-weight: 700; }
+.urgency-medium { color: #d97706; font-weight: 700; }
+.urgency-low    { color: #16a34a; font-weight: 700; }
+
+/* ── Result card ── */
+.result-card {
+    border-left: 4px solid #2563eb;
+}
+
+.result-card.high   { border-left-color: #dc2626; }
+.result-card.medium { border-left-color: #d97706; }
+.result-card.low    { border-left-color: #16a34a; }
+
+/* ── Misc ── */
 pre {
-    background: #f1f1f1;
-    padding: 12px;
-    border-radius: 4px;
+    background: #f8fafc;
+    padding: 12px 14px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    border: 1px solid #e5e7eb;
+}
+
+.section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.back-btn-wrap {
+    margin-bottom: 1rem;
 }

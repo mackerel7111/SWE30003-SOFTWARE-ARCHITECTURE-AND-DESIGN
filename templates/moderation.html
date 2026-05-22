@@ -4,31 +4,39 @@
 
 {% block content %}
 <h1 class="h3">Moderation Queue</h1>
-<p class="text-muted">Staff workflow: approve or reject pending content submissions.</p>
+<p class="text-muted">Review pending content submissions from veterinary partners. Approve to publish or reject to discard.</p>
 
 {% if message %}
-    <div class="alert alert-success">{{ message }}</div>
+    <div class="alert alert-success">✅ {{ message }}</div>
 {% endif %}
 
 {% if requests %}
-    {% for request in requests %}
+    {% for req in requests %}
         <div class="card mb-3">
             <div class="card-body">
-                <h2 class="h5">Request {{ request.request_id }}</h2>
-                <p><strong>Submitted by:</strong> {{ request.submitted_by }}</p>
-                <p><strong>Status:</strong> {{ request.status }}</p>
-                <pre>{{ request.proposed_data }}</pre>
-                <form method="post">
-                    <input type="hidden" name="request_id" value="{{ request.request_id }}">
-                    <button class="btn btn-success" name="decision" value="approve" type="submit">Approve</button>
-                    <button class="btn btn-danger" name="decision" value="reject" type="submit">Reject</button>
-                </form>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h5 mb-0">Request {{ req.request_id }}</h2>
+                    <span class="role-badge {% if req.status == 'Pending' %}owner{% elif req.status == 'Approved' %}staff{% else %}vet{% endif %}">
+                        {{ req.status }}
+                    </span>
+                </div>
+                <p class="text-muted mb-2" style="font-size:0.85rem;">Submitted by: <strong>{{ req.submitted_by }}</strong></p>
+                <pre>{{ req.proposed_data }}</pre>
+                {% if req.status == "Pending" %}
+                    <form method="post" class="d-flex gap-2 mt-2">
+                        <input type="hidden" name="request_id" value="{{ req.request_id }}">
+                        <button class="btn btn-success btn-sm" name="decision" value="approve" type="submit">✅ Approve</button>
+                        <button class="btn btn-danger btn-sm" name="decision" value="reject" type="submit">❌ Reject</button>
+                    </form>
+                {% else %}
+                    <p class="text-muted mb-0 mt-2" style="font-size:0.82rem;">This request has already been processed.</p>
+                {% endif %}
             </div>
         </div>
     {% endfor %}
 {% else %}
-    <div class="alert alert-info">No pending requests.</div>
+    <div class="alert alert-info">No pending requests in the moderation queue.</div>
 {% endif %}
 
-<a class="btn btn-outline-secondary" href="{{ url_for('submit_content') }}">Create Another Submission</a>
+<a class="btn btn-outline-secondary mt-2" href="{{ url_for('submit_content') }}">← Create Another Submission</a>
 {% endblock %}

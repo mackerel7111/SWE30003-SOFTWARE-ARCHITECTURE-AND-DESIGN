@@ -4,24 +4,29 @@
 
 {% block content %}
 <h1 class="h3">Search</h1>
-<p class="text-muted">Search first-aid guides by keyword, or clinics by region such as Kuching or Miri.</p>
-<form method="post" class="card mb-4">
+<p class="text-muted">Search for first-aid guides by symptom keyword, or find vet clinics by region (e.g. Kuching, Miri).</p>
+
+<form method="post" class="card mb-4" novalidate>
     <div class="card-body">
         <label class="form-label">Keyword or Region</label>
-        <input class="form-control" name="keyword" value="{{ keyword }}" placeholder="vomiting or Kuching" required>
-        <button class="btn btn-primary mt-3" type="submit">Search</button>
-        <a class="btn btn-outline-secondary mt-3" href="{{ url_for('alerts') }}">Go to Alerts</a>
+        <div class="d-flex gap-2">
+            <input class="form-control" name="keyword" value="{{ keyword }}" placeholder="e.g. vomiting  or  Kuching" required>
+            <button class="btn btn-primary" type="submit" style="white-space:nowrap;">Search</button>
+        </div>
+        <div class="mt-2">
+            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('alerts') }}">Go to Alerts</a>
+        </div>
     </div>
 </form>
 
 {% if guides is not none %}
-    <h2 class="h4">First-Aid Guides</h2>
+    <p class="section-title">First-Aid Guides</p>
     {% if guides %}
         {% for guide in guides %}
             <div class="card mb-3">
                 <div class="card-body">
-                    <h3 class="h5">{{ guide.emergency_category|title }}</h3>
-                    <ol>
+                    <h3 class="h5 mb-2">{{ guide.emergency_category | title }}</h3>
+                    <ol class="mb-0">
                         {% for step in guide.step_by_step_instruction %}
                             <li>{{ step }}</li>
                         {% endfor %}
@@ -30,22 +35,22 @@
             </div>
         {% endfor %}
     {% else %}
-        <div class="alert alert-info">No guides found.</div>
+        <div class="alert alert-info">No first-aid guides found for <strong>{{ keyword }}</strong>.</div>
     {% endif %}
 
-    <h2 class="h4">Clinics</h2>
+    <p class="section-title">Vet Clinics</p>
     {% if clinics %}
         {% for clinic in clinics %}
             <div class="card mb-3">
                 <div class="card-body">
-                    <h3 class="h5">{{ clinic.clinic_name }}</h3>
-                    <p>{{ clinic.region }} | {{ clinic.operating_hours }}</p>
-                    <a href="{{ clinic.google_maps_link }}">Map Link</a>
+                    <h3 class="h5 mb-1">{{ clinic.clinic_name }}</h3>
+                    <p class="text-muted mb-1" style="font-size:0.85rem;">📍 {{ clinic.region }} &nbsp;|&nbsp; 🕐 {{ clinic.operating_hours }}</p>
+                    <a href="{{ clinic.google_maps_link }}" target="_blank" class="btn btn-sm btn-outline-secondary">View on Map</a>
                 </div>
             </div>
         {% endfor %}
     {% else %}
-        <div class="alert alert-info">No clinics found.</div>
+        <div class="alert alert-info">No clinics found for region <strong>{{ keyword }}</strong>.</div>
     {% endif %}
 {% endif %}
 {% endblock %}

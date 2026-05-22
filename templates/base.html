@@ -8,11 +8,19 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg bg-light border-bottom">
+    <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('dashboard') }}">Pet First Aid</a>
-            <div class="navbar-nav flex-row flex-wrap gap-2">
+            <div class="navbar-nav flex-row flex-wrap gap-1 ms-auto align-items-center">
                 {% if current_user %}
+                    {% if current_role == "PetOwner" %}
+                        <span class="role-badge owner me-2">Pet Owner</span>
+                    {% elif current_role == "AssociationStaff" %}
+                        <span class="role-badge staff me-2">Staff</span>
+                    {% elif current_role == "VeterinaryPartner" %}
+                        <span class="role-badge vet me-2">Vet Partner</span>
+                    {% endif %}
+
                     <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
 
                     {% if current_role == "PetOwner" %}
@@ -36,11 +44,81 @@
 
     <main class="container py-4">
         {% if current_user %}
-            <div class="mb-3">
-                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-secondary">Back to Dashboard</a>
+            <div class="back-btn-wrap">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-secondary">← Back to Dashboard</a>
             </div>
         {% endif %}
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+    // Client-side inline validation — marks fields invalid on submit if empty or out of range
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                let valid = true;
+
+                form.querySelectorAll('[required]').forEach(function (field) {
+                    // Remove previous state
+                    field.classList.remove('is-invalid', 'is-valid');
+                    let fb = field.parentElement.querySelector('.invalid-feedback');
+                    if (fb) fb.remove();
+
+                    const val = field.value.trim();
+
+                    if (!val) {
+                        field.classList.add('is-invalid');
+                        const msg = document.createElement('div');
+                        msg.className = 'invalid-feedback';
+                        msg.textContent = 'This field is required.';
+                        field.parentElement.appendChild(msg);
+                        valid = false;
+                    } else if (field.type === 'number') {
+                        const min = parseFloat(field.getAttribute('min'));
+                        const num = parseFloat(val);
+                        if (!isNaN(min) && num < min) {
+                            field.classList.add('is-invalid');
+                            const msg = document.createElement('div');
+                            msg.className = 'invalid-feedback';
+                            msg.textContent = `Value must be at least ${min}.`;
+                            field.parentElement.appendChild(msg);
+                            valid = false;
+                        } else {
+                            field.classList.add('is-valid');
+                        }
+                    } else if (field.type === 'email') {
+                        const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRe.test(val)) {
+                            field.classList.add('is-invalid');
+                            const msg = document.createElement('div');
+                            msg.className = 'invalid-feedback';
+                            msg.textContent = 'Please enter a valid email address.';
+                            field.parentElement.appendChild(msg);
+                            valid = false;
+                        } else {
+                            field.classList.add('is-valid');
+                        }
+                    } else {
+                        field.classList.add('is-valid');
+                    }
+                });
+
+                if (!valid) e.preventDefault();
+            });
+
+            // Live feedback: clear invalid state as soon as user types
+            form.querySelectorAll('[required]').forEach(function (field) {
+                field.addEventListener('input', function () {
+                    if (field.classList.contains('is-invalid') && field.value.trim()) {
+                        field.classList.remove('is-invalid');
+                        field.classList.add('is-valid');
+                        const fb = field.parentElement.querySelector('.invalid-feedback');
+                        if (fb) fb.remove();
+                    }
+                });
+            });
+        });
+    });
+    </script>
 </body>
 </html>

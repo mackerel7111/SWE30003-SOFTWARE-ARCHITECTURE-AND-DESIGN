@@ -4,59 +4,87 @@
 
 {% block content %}
 <h1 class="h3">Regional Alerts</h1>
-<p class="text-muted">Staff can create alerts; owners can fetch alerts by region.</p>
+<p class="text-muted">Association Staff can create and broadcast alerts. Pet Owners can fetch active alerts by region.</p>
 
 {% if message %}
-    <div class="alert alert-success">{{ message }}</div>
+    <div class="alert alert-success">✅ {{ message }}</div>
 {% endif %}
 
-<div class="row g-3">
+<div class="row g-4">
+
     <div class="col-md-6">
-        <form method="post" class="card">
+        <div class="card h-100">
             <div class="card-body">
-                <h2 class="h5">Create Alert</h2>
-                <input type="hidden" name="action" value="create">
-                <input class="form-control mb-2" name="alert_id" placeholder="Alert ID" required>
-                <input class="form-control mb-2" name="title" placeholder="Title" required>
-                <textarea class="form-control mb-2" name="message" placeholder="Message" required></textarea>
-                <input class="form-control mb-2" name="target_region" placeholder="Target Region" required>
-                <select class="form-select mb-2" name="urgency_level">
-                    <option>Low</option>
-                    <option>Medium</option>
-                    <option>High</option>
-                </select>
-                <button class="btn btn-primary" type="submit">Create</button>
-                <a class="btn btn-outline-secondary" href="{{ url_for('moderation') }}">Go to Moderation</a>
+                <h2 class="h5 mb-3">📢 Create Alert</h2>
+                <form method="post" novalidate>
+                    <input type="hidden" name="action" value="create">
+                    <div class="mb-2">
+                        <label class="form-label">Alert ID</label>
+                        <input class="form-control" name="alert_id" placeholder="e.g. ALT001" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Title</label>
+                        <input class="form-control" name="title" placeholder="e.g. Parvovirus Outbreak" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" name="message" rows="3" placeholder="Describe the health alert..." required></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Target Region</label>
+                        <input class="form-control" name="target_region" placeholder="e.g. Kuching" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Urgency Level</label>
+                        <select class="form-select" name="urgency_level">
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Create Alert</button>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
+
     <div class="col-md-6">
-        <form method="post" class="card">
+        <div class="card h-100">
             <div class="card-body">
-                <h2 class="h5">Fetch Alerts</h2>
-                <input type="hidden" name="action" value="fetch">
-                <input class="form-control mb-2" name="region" value="{{ region }}" placeholder="Region" required>
-                <button class="btn btn-primary" type="submit">Fetch</button>
-                <a class="btn btn-outline-secondary" href="{{ url_for('submit_content') }}">Go to Submit Content</a>
+                <h2 class="h5 mb-3">🔍 Fetch Alerts by Region</h2>
+                <form method="post" novalidate>
+                    <input type="hidden" name="action" value="fetch">
+                    <div class="mb-3">
+                        <label class="form-label">Region</label>
+                        <input class="form-control" name="region" value="{{ region }}" placeholder="e.g. Kuching" required>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Fetch Alerts</button>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('moderation') }}">Go to Moderation</a>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
+
 </div>
 
 {% if alerts is not none %}
-    <h2 class="h4 mt-4">Active Alerts</h2>
+    <p class="section-title">Active Alerts {% if region %}for <em>{{ region }}</em>{% endif %}</p>
     {% if alerts %}
         {% for alert in alerts %}
-            <div class="card mb-3">
+            {% set u = alert.urgency_level | lower %}
+            <div class="card mb-3 result-card {{ u }}">
                 <div class="card-body">
-                    <h3 class="h5">{{ alert.title }}</h3>
-                    <p>{{ alert.message }}</p>
-                    <p>{{ alert.target_region }} | {{ alert.urgency_level }} | {{ alert.date_issued }}</p>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h3 class="h5 mb-1">{{ alert.title }}</h3>
+                        <span class="urgency-{{ u }}">{{ alert.urgency_level }}</span>
+                    </div>
+                    <p class="mb-1">{{ alert.message }}</p>
+                    <p class="text-muted mb-0" style="font-size:0.82rem;">📍 {{ alert.target_region }} &nbsp;|&nbsp; 🕐 {{ alert.date_issued }}</p>
                 </div>
             </div>
         {% endfor %}
     {% else %}
-        <div class="alert alert-info">No alerts found.</div>
+        <div class="alert alert-info">No active alerts found for <strong>{{ region }}</strong>.</div>
     {% endif %}
 {% endif %}
 {% endblock %}
