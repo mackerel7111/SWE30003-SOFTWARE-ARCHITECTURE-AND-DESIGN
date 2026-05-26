@@ -13,8 +13,8 @@ Conventions       : PascalCase classes · camelCase methods/attributes ·
 
 import logging
 from datetime import datetime, timezone
-from database import Database
-from models import (
+from Backend.database import Database
+from Backend.models import (
     PetOwner, AssociationStaff, VeterinaryPartner, PetProfile,
     Symptom, FirstAidGuide, InstructionalVideo, VetDetails,
     RegionalAlert, ApprovalRequest, EducationalQuiz, QuizQuestion, QuizFeedback,

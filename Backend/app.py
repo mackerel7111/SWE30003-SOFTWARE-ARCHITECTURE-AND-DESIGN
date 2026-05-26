@@ -10,8 +10,8 @@ for the frontend team to consume.
 
 import logging
 from flask import Flask, request, jsonify, session
-from database import Database
-from services import (
+from Backend.database import Database
+from Backend.services import (
     AuthenticationManager, TriageEngine, SearchEngine, 
     ContentRepository, ContentModerator, AlertBroadcaster
 )

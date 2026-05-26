@@ -35,7 +35,7 @@ Ensure your local backend root workspace directory matches this layout before pu
 ```text
 PFA/
 │
-├── env/                  <-- Virtual environment folder (Excluded from git tracking)
+├── Backend                  <-- Backend Folder
 │
 ├── database.py           <-- Tier 1 & 2: Database Singleton & indexing hooks
 ├── models.py             <-- Tier 3: Program domain object definition blueprints
