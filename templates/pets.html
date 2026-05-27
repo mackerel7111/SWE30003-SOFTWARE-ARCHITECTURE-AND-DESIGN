@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Pet Profiles | Pet First Aid{% endblock %}
+
+{% block content %}
+<h1 class="h3">My Pet Profiles</h1>
+<p class="text-muted">Save pet details once, then select the pet during symptom triage.</p>
+
+{% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+{% endif %}
+
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<form method="post" class="card mb-4" novalidate>
+    <div class="card-body">
+        <p class="section-title" style="margin-top:0;">Add Pet Profile</p>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Pet Name</label>
+                <input class="form-control" name="name" placeholder="e.g. Buddy" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Species</label>
+                <select class="form-select" name="species" required>
+                    <option value="" disabled selected>Select species</option>
+                    <option value="dog">Dog</option>
+                    <option value="cat">Cat</option>
+                    <option value="rabbit">Rabbit</option>
+                    <option value="bird">Bird</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Breed</label>
+                <input class="form-control" name="breed" placeholder="e.g. Golden Retriever">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Age</label>
+                <input class="form-control" type="number" name="age" min="0" placeholder="3" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Weight (kg)</label>
+                <input class="form-control" type="number" step="0.1" name="weight_kg" min="0" placeholder="4.5" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Sex</label>
+                <select class="form-select" name="sex">
+                    <option value="">Not specified</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Neutered / Spayed</label>
+                <select class="form-select" name="is_neutered">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Medical History <span class="text-muted fw-normal">(one per line)</span></label>
+                <textarea class="form-control" name="medical_history" rows="3" placeholder="Vaccinated&#10;No known allergies"></textarea>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Emergency Notes</label>
+                <textarea class="form-control" name="emergency_notes" rows="2" placeholder="Important handling or medication notes"></textarea>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-primary" type="submit">Save Pet Profile</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('triage') }}">Go to Triage</a>
+        </div>
+    </div>
+</form>
+
+<p class="section-title">Saved Pet Profiles</p>
+{% if pets %}
+    <div class="row g-3">
+        {% for pet in pets %}
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h2 class="h5 mb-1">{{ pet.name }}</h2>
+                        <p class="text-muted mb-2">{{ pet.species | title }}{% if pet.breed %} - {{ pet.breed }}{% endif %}</p>
+                        <p class="mb-1"><strong>Age:</strong> {{ pet.age }} years</p>
+                        <p class="mb-1"><strong>Weight:</strong> {{ pet.weight_kg }} kg</p>
+                        {% if pet.medical_history %}
+                            <p class="mb-1"><strong>Medical History:</strong> {{ pet.medical_history }}</p>
+                        {% endif %}
+                        {% if pet.emergency_notes %}
+                            <p class="mb-0"><strong>Emergency Notes:</strong> {{ pet.emergency_notes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">No pet profiles saved yet.</div>
+{% endif %}
+{% endblock %}

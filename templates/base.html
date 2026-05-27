@@ -24,9 +24,11 @@
                     <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
 
                     {% if current_role == "PetOwner" %}
+                        <a class="nav-link" href="{{ url_for('pets') }}">Pets</a>
                         <a class="nav-link" href="{{ url_for('triage') }}">Triage</a>
                         <a class="nav-link" href="{{ url_for('search') }}">Search</a>
                         <a class="nav-link" href="{{ url_for('alerts') }}">Alerts</a>
+                        <a class="nav-link" href="{{ url_for('quiz') }}">Quiz</a>
                     {% elif current_role == "AssociationStaff" %}
                         <a class="nav-link" href="{{ url_for('alerts') }}">Alerts</a>
                         <a class="nav-link" href="{{ url_for('moderation') }}">Moderation</a>

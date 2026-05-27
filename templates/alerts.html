@@ -12,16 +12,13 @@
 
 <div class="row g-4">
 
+    {% if current_role == "AssociationStaff" %}
     <div class="col-md-6">
         <div class="card h-100">
             <div class="card-body">
                 <h2 class="h5 mb-3">📢 Create Alert</h2>
                 <form method="post" novalidate>
                     <input type="hidden" name="action" value="create">
-                    <div class="mb-2">
-                        <label class="form-label">Alert ID</label>
-                        <input class="form-control" name="alert_id" placeholder="e.g. ALT001" required>
-                    </div>
                     <div class="mb-2">
                         <label class="form-label">Title</label>
                         <input class="form-control" name="title" placeholder="e.g. Parvovirus Outbreak" required>
@@ -47,6 +44,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <div class="col-md-6">
         <div class="card h-100">

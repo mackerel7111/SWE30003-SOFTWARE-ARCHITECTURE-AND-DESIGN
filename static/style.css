@@ -244,6 +244,35 @@ pre {
     margin-top: 1.5rem;
 }
 
+.moderation-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.55rem 1rem;
+    padding: 0.85rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.86rem;
+}
+
+.moderation-section {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 0.9rem;
+    margin-top: 0.9rem;
+}
+
+.moderation-section h3 {
+    font-size: 0.95rem;
+    font-weight: 650;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.moderation-section li {
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+}
+
 .back-btn-wrap {
     margin-bottom: 1rem;
 }

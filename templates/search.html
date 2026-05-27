@@ -4,14 +4,35 @@
 
 {% block content %}
 <h1 class="h3">Search</h1>
-<p class="text-muted">Search for first-aid guides by symptom keyword, or find vet clinics by region (e.g. Kuching, Miri).</p>
+<p class="text-muted">Choose whether to search first-aid guides, instructional videos, or vet clinics by region.</p>
 
 <form method="post" class="card mb-4" novalidate>
     <div class="card-body">
-        <label class="form-label">Keyword or Region</label>
-        <div class="d-flex gap-2">
-            <input class="form-control" name="keyword" value="{{ keyword }}" placeholder="e.g. vomiting  or  Kuching" required>
-            <button class="btn btn-primary" type="submit" style="white-space:nowrap;">Search</button>
+        <div class="row g-2">
+            <div class="col-md-4">
+                <label class="form-label">Search Type</label>
+                <select class="form-select" name="search_type" id="search_type" required>
+                    <option value="guide" {% if search_type == "guide" %}selected{% endif %}>First-Aid Guide</option>
+                    <option value="video" {% if search_type == "video" %}selected{% endif %}>Instructional Video</option>
+                    <option value="clinic" {% if search_type == "clinic" %}selected{% endif %}>Vet Clinic by Region</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" id="keyword_label">
+                    {% if search_type == "clinic" %}Region{% elif search_type == "video" %}Species{% else %}Symptom Keyword{% endif %}
+                </label>
+                <input
+                    class="form-control"
+                    id="keyword"
+                    name="keyword"
+                    value="{{ keyword }}"
+                    placeholder="{% if search_type == 'clinic' %}e.g. Kuching{% elif search_type == 'video' %}e.g. dog{% else %}e.g. vomiting{% endif %}"
+                    required
+                >
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-primary w-100" type="submit">Search</button>
+            </div>
         </div>
         <div class="mt-2">
             <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('alerts') }}">Go to Alerts</a>
@@ -38,6 +59,29 @@
         <div class="alert alert-info">No first-aid guides found for <strong>{{ keyword }}</strong>.</div>
     {% endif %}
 
+{% endif %}
+
+{% if videos is not none %}
+    <p class="section-title">Instructional Videos</p>
+    {% if videos %}
+        {% for video in videos %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h3 class="h5 mb-1">{{ video.title }}</h3>
+                    <p class="text-muted mb-1" style="font-size:0.85rem;">{{ video.species }} | {{ video.duration }} | Tags: {{ video.tags }}</p>
+                    {% if video.description %}
+                        <p class="mb-2">{{ video.description }}</p>
+                    {% endif %}
+                    <a href="{{ video.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Open Video</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">No instructional videos found for <strong>{{ keyword }}</strong>.</div>
+    {% endif %}
+{% endif %}
+
+{% if clinics is not none %}
     <p class="section-title">Vet Clinics</p>
     {% if clinics %}
         {% for clinic in clinics %}
@@ -53,4 +97,28 @@
         <div class="alert alert-info">No clinics found for region <strong>{{ keyword }}</strong>.</div>
     {% endif %}
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchType = document.getElementById('search_type');
+    const keyword = document.getElementById('keyword');
+    const keywordLabel = document.getElementById('keyword_label');
+
+    function updateSearchTermHint() {
+        if (searchType.value === 'clinic') {
+            keywordLabel.textContent = 'Region';
+            keyword.placeholder = 'e.g. Kuching';
+        } else if (searchType.value === 'video') {
+            keywordLabel.textContent = 'Species';
+            keyword.placeholder = 'e.g. dog';
+        } else {
+            keywordLabel.textContent = 'Symptom Keyword';
+            keyword.placeholder = 'e.g. vomiting';
+        }
+    }
+
+    searchType.addEventListener('change', updateSearchTermHint);
+    updateSearchTermHint();
+});
+</script>
 {% endblock %}

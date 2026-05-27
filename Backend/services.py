@@ -94,106 +94,87 @@ class AuthenticationManager:
             return False
         return sessionUser.get("role") in requiredRoles
 
-
 class TriageEngine:
     """
     Control class designed to evaluate reported symptoms against animal species parameters 
     and establish the baseline urgency rating.
     """
+    def __init__(self):
+        self.searchEngine = SearchEngine()
 
     def evaluateSymptoms(self, species: str, symptomNames: list[str]) -> dict:
-        """
-        Assess a collective group of symptoms to calculate systemic urgency severity.
-
-        Parameters
-        ----------
-        species : str
-        symptomNames : list[str]
-
-        Returns
-        -------
-        dict
-            An analytical dictionary summary consisting of 'urgencyLevel' and 
-            actionable 'triageNotes'.
-        """
         if not symptomNames:
             return {
                 "urgencyLevel": "NON_URGENT",
                 "triageNotes": "No visible symptoms reported. Continue monitoring your pet's routine behaviors closely."
             }
 
-        db = Database()
         matchedUrgencyLevels = []
         normalizedSpecies = species.lower().strip()
 
-        # Iterate over structural guide criteria to extract worst-case severity levels
         for symptomName in symptomNames:
-            guides = db.searchFirstAidGuides(normalizedSpecies, [symptomName])
+            guides = self.searchEngine.queryFirstAidGuides(
+                normalizedSpecies,
+                symptomName
+            )
+
             for guide in guides:
-                matchedUrgencyLevels.append(guide.get("urgencyLevel", "NON_URGENT"))
+                matchedUrgencyLevels.append(guide.urgencyLevel)
 
         if "EMERGENCY" in matchedUrgencyLevels:
             return {
                 "urgencyLevel": "EMERGENCY",
                 "triageNotes": "CRITICAL SITUATION DETECTED. Please immediately check the relevant emergency first-aid guides and transport your pet safely to an open emergency care clinic."
             }
+
         elif "URGENT" in matchedUrgencyLevels:
             return {
                 "urgencyLevel": "URGENT",
-                "triageNotes": "Potentially hazardous condition. Apply preliminary stabilized care steps and secure a veterinary consultation within the day."
+                "triageNotes": "Potentially hazardous condition. Apply preliminary stabilised care steps and secure a veterinary consultation within the day."
             }
-        
+
         return {
             "urgencyLevel": "NON_URGENT",
-            "triageNotes": "Symptoms appear to indicate mild complications. Administer standard comfort care routines, but consult a professional vet if conditions exacerbate."
+            "triageNotes": "Symptoms appear to indicate mild complications. Administer standard comfort care routines, but consult a professional vet if conditions worsen."
         }
 
 
 class SearchEngine:
     """
-    Control class for matching user input text expressions with available 
+    Control class for matching user input text expressions with available
     veterinary services and published documentation assets.
     """
 
+    def __init__(self):
+        self.contentRepository = ContentRepository()
+
     def searchVetsByRegion(self, region: str) -> list[VetDetails]:
         """
-        Find authorized localized veterinary clinics located in a target area.
-
-        Parameters
-        ----------
-        region : str
-
-        Returns
-        -------
-        list[VetDetails]
-            A sequence of domain-validated entity definitions matching the zone.
+        Find authorised veterinary clinics located in a target region.
         """
-        db = Database()
-        rawVets = db.findVetsByRegion(region)
-        return [VetDetails.fromDict(vet) for vet in rawVets]
+        return self.contentRepository.getVetDetailsByRegion(region)
 
     def queryFirstAidGuides(self, species: str, userQueryText: str) -> list[FirstAidGuide]:
         """
-        Execute an indexed keyword match search against published first-aid booklets.
-
-        Parameters
-        ----------
-        species : str
-        userQueryText : str
-
-        Returns
-        -------
-        list[FirstAidGuide]
-            A listing of validated and published instructions matching query flags.
+        Execute keyword search against published first-aid guides.
         """
-        db = Database()
-        # Parse query string into clean tokens for evaluation
-        tokens = [token.lower().strip() for token in userQueryText.split() if len(token) > 2]
+        tokens = self._tokenizeSearchText(userQueryText)
+        return self.contentRepository.getFirstAidGuides(species, tokens)
+
+    def _tokenizeSearchText(self, userQueryText: str) -> list[str]:
+        """
+        Convert a raw user search string into searchable keyword tokens.
+        """
+        tokens = [
+            token.lower().strip()
+            for token in userQueryText.split()
+            if len(token) > 2
+        ]
+
         if not tokens:
             tokens = [userQueryText.lower().strip()]
 
-        rawGuides = db.searchFirstAidGuides(species, tokens)
-        return [FirstAidGuide.fromDict(guide) for guide in rawGuides if guide.get("isApproved")]
+        return tokens
 
 
 class ContentRepository:
@@ -201,6 +182,34 @@ class ContentRepository:
     Control layer manager handling retrieval workflows for educational courses, 
     media components, and public diagnostic tool metrics.
     """
+    def getFirstAidGuides(self, species: str, keywords: list[str]) -> list[FirstAidGuide]:
+        """
+        Retrieve approved first-aid guides matching species and keywords.
+        """
+        db = Database()
+        rawGuides = db.searchFirstAidGuides(species, keywords)
+        return [
+            FirstAidGuide.fromDict(guide)
+            for guide in rawGuides
+            if guide.get("isApproved")
+        ]
+
+    def getVetDetailsByRegion(self, region: str) -> list[VetDetails]:
+        """
+        Retrieve active veterinary clinic details for a region.
+        """
+        db = Database()
+        rawVets = db.findVetsByRegion(region)
+        return [VetDetails.fromDict(vet) for vet in rawVets]
+    
+    def addVetDetails(self, clinicData: dict, staffUserId: str) -> str:
+        clinicData["createdByStaffId"] = staffUserId
+
+        vetDetails = VetDetails.fromDict(clinicData)
+
+        db = Database()
+        return db.insertVetDetails(vetDetails.toDict())
+
 
     def getApprovedVideos(self, species: str) -> list[InstructionalVideo]:
         """
@@ -236,27 +245,40 @@ class ContentRepository:
             return EducationalQuiz.fromDict(rawQuiz)
         return None
 
-    def submitQuizResults(self, quizId: str, userId: str, score: int, totalQuestions: int, comments: str = "") -> dict:
+    def getAllQuizzes(self) -> list[EducationalQuiz]:
         """
-        Process and permanently log scores generated by users finishing evaluations.
-
-        Parameters
-        ----------
-        quizId : str
-        userId : str
-        score : int
-        totalQuestions : int
-        comments : str, optional
-
-        Returns
-        -------
-        dict
-            The serialization details mapping of the registered transaction entry.
+        Retrieve all available educational quizzes.
         """
-        feedbackObj = QuizFeedback(quizId, userId, score, totalQuestions, comments)
         db = Database()
-        db.recordQuizFeedback(quizId, feedbackObj.toDict())
-        return feedbackObj.toDict()
+        return [EducationalQuiz.fromDict(quiz) for quiz in db.findAllQuizzes()]
+
+    def submitQuizResults(self, quizId: str, submittedAnswers: dict[str, str]) -> dict:
+        quiz = self.getQuizDetails(quizId)
+        
+        if quiz is None:
+            raise ValueError("Quiz not found.")
+
+        score = quiz.calculateScore(submittedAnswers)
+
+        questionResults = []
+        for question in quiz.getQuestions():
+            selectedAnswer = submittedAnswers.get(question.questionId, "")
+            questionResults.append({
+                "questionId": question.questionId,
+                "selectedAnswer": selectedAnswer,
+                "correctAnswer": question.correctAnswer,
+                "isCorrect": question.checkAnswer(selectedAnswer),
+                "feedback": question.getFeedback(),
+            })
+
+        return {
+            "quizId": quiz.quizId,
+            "score": score,
+            "totalQuestions": quiz.questionCount,
+            "questionResults": questionResults,
+        }
+
+
 
 
 class ContentModerator:

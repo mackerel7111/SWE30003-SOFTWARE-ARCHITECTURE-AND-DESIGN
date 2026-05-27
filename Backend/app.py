@@ -192,6 +192,32 @@ def reviewSubmission(requestId):
     except Exception as err:
         logger.exception("Review error: %s", str(err))
         return jsonify({"status": "error", "message": "Moderation failure."}), 500
+    
+    
+@app.route("/api/vets", methods=["POST"])
+def createVetDetails():
+    sessionUser = session.get("user")
 
+    if not authManager.verifyRole(sessionUser, ["association_staff"]):
+        return jsonify({"status": "error", "message": "Forbidden. Staff access required."}), 403
+
+    data = request.get_json()
+
+    try:
+        repository = ContentRepository()
+        vetId = repository.addVetDetails(data, sessionUser["userId"])
+
+        return jsonify({
+            "status": "success",
+            "message": "Vet details added successfully.",
+            "vetDetailsId": vetId
+        }), 201
+
+    except Exception as err:
+        return jsonify({
+            "status": "error",
+            "message": str(err)
+        }), 400
+        
 if __name__ == "__main__":
     app.run(host="localhost", port=5000, debug=True)

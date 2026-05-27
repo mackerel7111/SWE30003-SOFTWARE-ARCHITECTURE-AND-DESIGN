@@ -4,10 +4,10 @@
 
 {% block content %}
 <h1 class="h3">Submit Content</h1>
-<p class="text-muted">Propose a new first-aid guide. Your submission will be reviewed by association staff before going live.</p>
+<p class="text-muted">Propose first-aid content. Your submission will be reviewed by association staff before going live.</p>
 
 {% if message %}
-    <div class="alert alert-success">✅ {{ message }}</div>
+    <div class="alert alert-success">{{ message }}</div>
 {% endif %}
 
 <form method="post" class="card" novalidate>
@@ -15,34 +15,91 @@
         <p class="section-title" style="margin-top:0;">Submission Details</p>
         <div class="row g-3">
             <div class="col-md-6">
-                <label class="form-label">Request ID</label>
-                <input class="form-control" name="request_id" placeholder="e.g. REQ001" required>
+                <label class="form-label">Content Type</label>
+                <select class="form-select" name="content_type" id="content_type" required>
+                    <option value="first_aid_guide">First-Aid Guide</option>
+                    <option value="instructional_video">Instructional Video</option>
+                </select>
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Veterinary Partner ID</label>
-                <input class="form-control" name="submitted_by" placeholder="e.g. V001" required>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Guide ID</label>
-                <input class="form-control" name="guide_id" placeholder="e.g. G001" required>
-            </div>
+        </div>
+
+        <div id="guide_fields" class="row g-3 mt-1">
             <div class="col-md-6">
                 <label class="form-label">Emergency Category</label>
-                <input class="form-control" name="emergency_category" placeholder="e.g. poisoning" required>
+                <input class="form-control" name="emergency_category" placeholder="e.g. poisoning">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Species</label>
+                <select class="form-select" name="guide_species">
+                    <option value="dog">Dog</option>
+                    <option value="cat">Cat</option>
+                    <option value="rabbit">Rabbit</option>
+                    <option value="other">Other</option>
+                </select>
             </div>
             <div class="col-12">
                 <label class="form-label">First-Aid Steps <span class="text-muted fw-normal">(one per line)</span></label>
-                <textarea class="form-control" name="steps" rows="5" placeholder="Step 1: Remove the pet from the source of danger.&#10;Step 2: Call your vet immediately." required></textarea>
+                <textarea class="form-control" name="steps" rows="5" placeholder="Step 1: Remove the pet from the source of danger.&#10;Step 2: Call your vet immediately."></textarea>
             </div>
             <div class="col-12">
                 <label class="form-label">Critical Warnings <span class="text-muted fw-normal">(one per line)</span></label>
-                <textarea class="form-control" name="warnings" rows="3" placeholder="Do not induce vomiting without veterinary guidance." required></textarea>
+                <textarea class="form-control" name="warnings" rows="3" placeholder="Do not induce vomiting without veterinary guidance."></textarea>
             </div>
         </div>
+
+        <div id="video_fields" class="row g-3 mt-1" style="display:none;">
+            <div class="col-md-6">
+                <label class="form-label">Video Title</label>
+                <input class="form-control" name="video_title" placeholder="e.g. Dog CPR Basics">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Species</label>
+                <select class="form-select" name="video_species">
+                    <option value="dog">Dog</option>
+                    <option value="cat">Cat</option>
+                    <option value="rabbit">Rabbit</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Video URL</label>
+                <input class="form-control" name="video_url" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Duration in Seconds</label>
+                <input class="form-control" name="duration_seconds" type="number" min="0" value="0">
+            </div>
+            <div class="col-12">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="video_description" rows="3" placeholder="Briefly describe what the video teaches."></textarea>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Tags <span class="text-muted fw-normal">(comma-separated)</span></label>
+                <input class="form-control" name="video_tags" placeholder="cpr, emergency, dog">
+            </div>
+        </div>
+
         <div class="d-flex gap-2 mt-4">
             <button class="btn btn-primary" type="submit">Submit for Review</button>
-            <a class="btn btn-outline-secondary" href="{{ url_for('moderation') }}">View Moderation Queue</a>
+            <a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
         </div>
     </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const contentType = document.getElementById('content_type');
+    const guideFields = document.getElementById('guide_fields');
+    const videoFields = document.getElementById('video_fields');
+
+    function updateFormMode() {
+        const isVideo = contentType.value === 'instructional_video';
+        guideFields.style.display = isVideo ? 'none' : '';
+        videoFields.style.display = isVideo ? '' : 'none';
+    }
+
+    contentType.addEventListener('change', updateFormMode);
+    updateFormMode();
+});
+</script>
 {% endblock %}

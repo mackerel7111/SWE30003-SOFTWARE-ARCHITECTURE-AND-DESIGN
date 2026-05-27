@@ -22,6 +22,13 @@
     {% if current_role == "PetOwner" %}
 
         <div class="col-md-4">
+            <a class="dashboard-card" href="{{ url_for('pets') }}">
+                <span class="card-icon">+</span>
+                <h2>My Pet Profiles</h2>
+                <p>Add and view saved pets before using triage.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('triage') }}">
                 <span class="card-icon">🩺</span>
                 <h2>Symptom Triage</h2>
@@ -40,6 +47,13 @@
                 <span class="card-icon">🔔</span>
                 <h2>Regional Alerts</h2>
                 <p>View active health alerts affecting your region.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a class="dashboard-card" href="{{ url_for('quiz') }}">
+                <span class="card-icon">?</span>
+                <h2>Educational Quiz</h2>
+                <p>Answer multiple-choice questions and review first-aid explanations.</p>
             </a>
         </div>
 

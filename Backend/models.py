@@ -393,7 +393,7 @@ class VeterinaryPartner(User):
     """
     Represents a verified veterinary professional partnered with the association.
 
-    Vet partners can submit first aid guides and videos for moderation approval.
+    Vet partners can submit first aid content for moderation approval.
 
     Attributes
     ----------
@@ -994,109 +994,65 @@ class InstructionalVideo:
 
 class VetDetails:
     """
-    Extended professional details for a ``VeterinaryPartner`` account.
+    Represents a veterinary clinic directory record.
 
-    Stored in a separate ``VetDetails`` collection to keep the ``Users``
-    collection lean and allow richer querying on clinic/region attributes.
-
-    Attributes
-    ----------
-    detailsId : str
-        MongoDB ``_id`` hex string.
-    userId : str
-        Foreign key to the ``VeterinaryPartner``'s ``_id`` in ``Users``.
-    clinicName : str
-    licenseNumber : str
-    specialisations : list[str]
-    region : str
-    contactInfo : dict
-        Free-form dict containing ``phone``, ``address``, and ``email``.
-    isActive : bool
+    VetDetails is maintained by AssociationStaff and retrieved by region
+    when pet owners search for nearby professional help.
     """
 
     def __init__(
         self,
-        userId:          str,
-        clinicName:      str,
-        licenseNumber:   str,
+        clinicName: str,
+        licenseNumber: str,
         specialisations: list[str] = None,
-        region:          str       = "",
-        contactInfo:     dict      = None,
-        isActive:        bool      = True,
-        detailsId:       str       = "",
-        createdAt:       datetime | None = None,
+        region: str = "",
+        contactInfo: dict = None,
+        operatingHours: str = "",
+        isActive: bool = True,
+        createdByStaffId: str = "",
+        detailsId: str = "",
+        createdAt: datetime | None = None,
     ) -> None:
-        """
-        Initialise a ``VetDetails`` instance.
-
-        Parameters
-        ----------
-        userId : str
-        clinicName : str
-        licenseNumber : str
-        specialisations : list[str], optional
-        region : str, optional
-        contactInfo : dict, optional
-        isActive : bool, optional
-        detailsId : str, optional
-        createdAt : datetime, optional
-        """
-        _requireNonEmpty(userId,        "userId")
-        _requireNonEmpty(clinicName,    "clinicName")
+        _requireNonEmpty(clinicName, "clinicName")
         _requireNonEmpty(licenseNumber, "licenseNumber")
 
-        self.detailsId       = detailsId
-        self.userId          = userId
-        self.clinicName      = clinicName.strip()
-        self.licenseNumber   = licenseNumber.strip()
+        self.detailsId = detailsId
+        self.clinicName = clinicName.strip()
+        self.licenseNumber = licenseNumber.strip()
         self.specialisations = specialisations if specialisations is not None else []
-        self.region          = region.strip()
-        self.contactInfo     = contactInfo if contactInfo is not None else {}
-        self.isActive        = bool(isActive)
-        self.createdAt       = createdAt or datetime.now(timezone.utc)
-
+        self.region = region.strip()
+        self.contactInfo = contactInfo if contactInfo is not None else {}
+        self.operatingHours = operatingHours.strip()
+        self.isActive = bool(isActive)
+        self.createdByStaffId = createdByStaffId
+        self.createdAt = createdAt or datetime.now(timezone.utc)
+        
     def toDict(self) -> dict:
-        """
-        Serialise ``VetDetails`` to a dict.
-
-        Returns
-        -------
-        dict
-        """
         return {
-            "userId":          self.userId,
-            "clinicName":      self.clinicName,
-            "licenseNumber":   self.licenseNumber,
+            "clinicName": self.clinicName,
+            "licenseNumber": self.licenseNumber,
             "specialisations": self.specialisations,
-            "region":          self.region,
-            "contactInfo":     self.contactInfo,
-            "isActive":        self.isActive,
-            "createdAt":       self.createdAt,
+            "region": self.region,
+            "contactInfo": self.contactInfo,
+            "operatingHours": self.operatingHours,
+            "isActive": self.isActive,
+            "createdByStaffId": self.createdByStaffId,
+            "createdAt": self.createdAt,
         }
 
     @classmethod
     def fromDict(cls, data: dict) -> "VetDetails":
-        """
-        Construct ``VetDetails`` from a MongoDB document dict.
-
-        Parameters
-        ----------
-        data : dict
-
-        Returns
-        -------
-        VetDetails
-        """
         return cls(
-            userId          = data.get("userId",          ""),
-            clinicName      = data.get("clinicName",      ""),
-            licenseNumber   = data.get("licenseNumber",   ""),
-            specialisations = data.get("specialisations", []),
-            region          = data.get("region",          ""),
-            contactInfo     = data.get("contactInfo",     {}),
-            isActive        = data.get("isActive",        True),
-            detailsId       = str(data.get("_id",         "")),
-            createdAt       = data.get("createdAt"),
+            clinicName=data.get("clinicName", ""),
+            licenseNumber=data.get("licenseNumber", ""),
+            specialisations=data.get("specialisations", []),
+            region=data.get("region", ""),
+            contactInfo=data.get("contactInfo", {}),
+            operatingHours=data.get("operatingHours", ""),
+            isActive=data.get("isActive", True),
+            createdByStaffId=data.get("createdByStaffId", ""),
+            detailsId=str(data.get("_id", "")),
+            createdAt=data.get("createdAt"),
         )
 
     def __repr__(self) -> str:
@@ -1370,7 +1326,7 @@ class QuizQuestion:
         questionText:  str,
         options:       list[str],
         correctAnswer: str,
-        explanation:   str = "",
+        feedback:QuizFeedback,
     ) -> None:
         """
         Initialise a ``QuizQuestion``.
@@ -1395,7 +1351,13 @@ class QuizQuestion:
         self.questionText  = questionText.strip()
         self.options       = options
         self.correctAnswer = correctAnswer.strip().upper()
-        self.explanation   = explanation.strip()
+        self.feedback   = feedback
+        
+    def checkAnswer(self, selectedAnswer: str) -> bool:
+        return selectedAnswer.strip().upper() == self.correctAnswer
+    
+    def getFeedback(self) -> str:
+        return self.feedback.getExplanation()
 
     def toDict(self) -> dict:
         """
@@ -1410,7 +1372,7 @@ class QuizQuestion:
             "questionText":  self.questionText,
             "options":       self.options,
             "correctAnswer": self.correctAnswer,
-            "explanation":   self.explanation,
+            "feedback":      self.feedback.toDict(),
         }
 
     @classmethod
@@ -1426,12 +1388,16 @@ class QuizQuestion:
         -------
         QuizQuestion
         """
+        feedbackData = data.get("feedback", {"explanationText": data.get("explanation", "")})
+        if isinstance(feedbackData, str):
+            feedbackData = {"explanationText": feedbackData}
+
         return cls(
             questionId    = data.get("questionId",    ""),
             questionText  = data.get("questionText",  ""),
             options       = data.get("options",       ["", ""]),
             correctAnswer = data.get("correctAnswer", ""),
-            explanation   = data.get("explanation",   ""),
+            feedback      = QuizFeedback.fromDict(feedbackData),
         )
 
     def __repr__(self) -> str:
@@ -1440,118 +1406,29 @@ class QuizQuestion:
 
 class QuizFeedback:
     """
-    Represents a pet owner's feedback/score submission for a completed quiz.
-
-    Attributes
-    ----------
-    quizId : str
-        ``_id`` of the completed ``EducationalQuiz``.
-    submittedBy : str
-        ``_id`` of the ``PetOwner`` who completed the quiz.
-    score : int
-        Number of correct answers.
-    totalQuestions : int
-        Total number of questions answered.
-    comments : str
-        Optional free-text feedback from the user.
-    submittedAt : datetime
+    Represents educational feedback shown after answering a quiz question.
     """
 
-    def __init__(
-        self,
-        quizId:         str,
-        submittedBy:    str,
-        score:          int,
-        totalQuestions: int,
-        comments:       str = "",
-        submittedAt:    datetime | None = None,
-    ) -> None:
-        """
-        Initialise a ``QuizFeedback`` record.
+    def __init__(self, explanationText: str):
+        _requireNonEmpty(explanationText, "explanationText")
+        self.explanationText = explanationText.strip()
 
-        Parameters
-        ----------
-        quizId : str
-        submittedBy : str
-        score : int
-        totalQuestions : int
-        comments : str, optional
-        submittedAt : datetime, optional
-        """
-        _requireNonEmpty(quizId,      "quizId")
-        _requireNonEmpty(submittedBy, "submittedBy")
-
-        if score < 0:
-            raise ValueError("'score' cannot be negative.")
-        if totalQuestions < 1:
-            raise ValueError("'totalQuestions' must be at least 1.")
-        if score > totalQuestions:
-            raise ValueError("'score' cannot exceed 'totalQuestions'.")
-
-        self.quizId         = quizId
-        self.submittedBy    = submittedBy
-        self.score          = int(score)
-        self.totalQuestions = int(totalQuestions)
-        self.comments       = comments.strip()
-        self.submittedAt    = submittedAt or datetime.now(timezone.utc)
-
-    @property
-    def scorePercentage(self) -> float:
-        """
-        Calculate the score as a percentage.
-
-        Returns
-        -------
-        float
-            Score percentage rounded to two decimal places.
-        """
-        return round((self.score / self.totalQuestions) * 100, 2)
+    def getExplanation(self) -> str:
+        return self.explanationText
 
     def toDict(self) -> dict:
-        """
-        Serialise ``QuizFeedback`` to a dict.
-
-        Returns
-        -------
-        dict
-        """
         return {
-            "quizId":         self.quizId,
-            "submittedBy":    self.submittedBy,
-            "score":          self.score,
-            "totalQuestions": self.totalQuestions,
-            "scorePercentage":self.scorePercentage,
-            "comments":       self.comments,
-            "submittedAt":    self.submittedAt,
+            "explanationText": self.explanationText,
         }
 
     @classmethod
     def fromDict(cls, data: dict) -> "QuizFeedback":
-        """
-        Construct a ``QuizFeedback`` from a dict.
-
-        Parameters
-        ----------
-        data : dict
-
-        Returns
-        -------
-        QuizFeedback
-        """
         return cls(
-            quizId         = data.get("quizId",         ""),
-            submittedBy    = data.get("submittedBy",    ""),
-            score          = data.get("score",          0),
-            totalQuestions = data.get("totalQuestions", 1),
-            comments       = data.get("comments",       ""),
-            submittedAt    = data.get("submittedAt"),
+            explanationText=data.get("explanationText", "")
         )
 
     def __repr__(self) -> str:
-        return (
-            f"<QuizFeedback quizId={self.quizId!r} "
-            f"score={self.score}/{self.totalQuestions}>"
-        )
+        return f"<QuizFeedback explanation={self.explanationText[:30]!r}>"
 
 
 class EducationalQuiz:
@@ -1568,8 +1445,6 @@ class EducationalQuiz:
     questions : list[QuizQuestion]
     createdBy : str
         ``_id`` of the creating ``AssociationStaff``.
-    feedbackList : list[QuizFeedback]
-        Accumulated feedback records from pet owners.
     """
 
     def __init__(
@@ -1579,7 +1454,6 @@ class EducationalQuiz:
         questions:       list[QuizQuestion],
         difficultyLevel: str              = DIFFICULTY_BEGINNER,
         createdBy:       str              = "",
-        feedbackList:    list[QuizFeedback] = None,
         quizId:          str              = "",
         createdAt:       datetime | None  = None,
     ) -> None:
@@ -1594,7 +1468,6 @@ class EducationalQuiz:
             Must contain at least one question.
         difficultyLevel : str, optional
         createdBy : str, optional
-        feedbackList : list[QuizFeedback], optional
         quizId : str, optional
         createdAt : datetime, optional
         """
@@ -1615,13 +1488,25 @@ class EducationalQuiz:
         self.questions       = questions
         self.difficultyLevel = difficultyLevel
         self.createdBy       = createdBy
-        self.feedbackList    = feedbackList if feedbackList is not None else []
         self.createdAt       = createdAt or datetime.now(timezone.utc)
 
+    def calculateScore(self, submittedAnswers: dict[str, str]) -> int:
+        score = 0
+
+        for question in self.questions:
+            selectedAnswer = submittedAnswers.get(question.questionId, "")
+            if question.checkAnswer(selectedAnswer):
+                score += 1
+
+        return score
+    
     @property
     def questionCount(self) -> int:
         """Return the number of questions in this quiz."""
         return len(self.questions)
+
+    def getQuestions(self) -> list[QuizQuestion]:
+        return self.questions
 
     def toDict(self) -> dict:
         """
@@ -1637,7 +1522,6 @@ class EducationalQuiz:
             "difficultyLevel": self.difficultyLevel,
             "questions":       [q.toDict() for q in self.questions],
             "createdBy":       self.createdBy,
-            "feedbackList":    [f.toDict() for f in self.feedbackList],
             "createdAt":       self.createdAt,
         }
 
@@ -1658,16 +1542,20 @@ class EducationalQuiz:
         EducationalQuiz
         """
         questions    = [QuizQuestion.fromDict(q) for q in data.get("questions",    [])]
-        feedbackList = [QuizFeedback.fromDict(f) for f in data.get("feedbackList", [])]
         return cls(
             title           = data.get("title",           ""),
             topic           = data.get("topic",           ""),
             questions       = questions if questions else [
-                QuizQuestion("Q000", "Placeholder", ["A", "B"], "A")
+                QuizQuestion(
+                    "Q000",
+                    "Placeholder",
+                    ["A", "B"],
+                    "A",
+                    QuizFeedback("No feedback available."),
+                )
             ],
             difficultyLevel = data.get("difficultyLevel", DIFFICULTY_BEGINNER),
             createdBy       = data.get("createdBy",       ""),
-            feedbackList    = feedbackList,
             quizId          = str(data.get("_id",         "")),
             createdAt       = data.get("createdAt"),
         )

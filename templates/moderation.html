@@ -7,26 +7,76 @@
 <p class="text-muted">Review pending content submissions from veterinary partners. Approve to publish or reject to discard.</p>
 
 {% if message %}
-    <div class="alert alert-success">✅ {{ message }}</div>
+    <div class="alert alert-success">{{ message }}</div>
 {% endif %}
 
 {% if requests %}
     {% for req in requests %}
         <div class="card mb-3">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h2 class="h5 mb-0">Request {{ req.request_id }}</h2>
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <h2 class="h5 mb-1">{{ req.title }}</h2>
+                        <p class="text-muted mb-0" style="font-size:0.85rem;">Request {{ req.request_id }}</p>
+                    </div>
                     <span class="role-badge {% if req.status == 'Pending' %}owner{% elif req.status == 'Approved' %}staff{% else %}vet{% endif %}">
                         {{ req.status }}
                     </span>
                 </div>
-                <p class="text-muted mb-2" style="font-size:0.85rem;">Submitted by: <strong>{{ req.submitted_by }}</strong></p>
-                <pre>{{ req.proposed_data }}</pre>
+
+                <div class="moderation-meta mb-3">
+                    <span><strong>Type:</strong> {{ req.content_type }}</span>
+                    <span><strong>Submitted by:</strong> {{ req.submitted_by }}</span>
+                    <span><strong>Species:</strong> {{ req.species }}</span>
+                    {% if not req.is_video %}
+                        <span><strong>Urgency:</strong> {{ req.urgency_level }}</span>
+                    {% endif %}
+                    <span><strong>Keywords:</strong> {{ req.keywords }}</span>
+                    {% if req.is_video %}
+                        <span><strong>Duration:</strong> {{ req.duration_seconds }} seconds</span>
+                    {% endif %}
+                </div>
+
+                {% if req.is_video %}
+                    <div class="moderation-section">
+                        <h3>Video Details</h3>
+                        <p class="mb-2">{{ req.description or "No description was provided." }}</p>
+                        <p class="mb-0"><strong>URL:</strong> <a href="{{ req.url }}" target="_blank">{{ req.url }}</a></p>
+                        <p class="mb-0"><strong>Tags:</strong> {{ req.tags }}</p>
+                    </div>
+                {% else %}
+                    <div class="moderation-section">
+                        <h3>Proposed First-Aid Steps</h3>
+                        {% if req.steps %}
+                            <ol class="mb-0">
+                                {% for step in req.steps %}
+                                    <li>{{ step }}</li>
+                                {% endfor %}
+                            </ol>
+                        {% else %}
+                            <p class="text-muted mb-0">No steps were provided.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="moderation-section">
+                        <h3>Critical Warnings</h3>
+                        {% if req.warnings %}
+                            <ul class="mb-0">
+                                {% for warning in req.warnings %}
+                                    <li>{{ warning }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted mb-0">No warnings were provided.</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
                 {% if req.status == "Pending" %}
-                    <form method="post" class="d-flex gap-2 mt-2">
+                    <form method="post" class="d-flex gap-2 mt-3">
                         <input type="hidden" name="request_id" value="{{ req.request_id }}">
-                        <button class="btn btn-success btn-sm" name="decision" value="approve" type="submit">✅ Approve</button>
-                        <button class="btn btn-danger btn-sm" name="decision" value="reject" type="submit">❌ Reject</button>
+                        <button class="btn btn-success btn-sm" name="decision" value="approve" type="submit">Approve</button>
+                        <button class="btn btn-danger btn-sm" name="decision" value="reject" type="submit">Reject</button>
                     </form>
                 {% else %}
                     <p class="text-muted mb-0 mt-2" style="font-size:0.82rem;">This request has already been processed.</p>
@@ -38,5 +88,5 @@
     <div class="alert alert-info">No submissions in the moderation queue yet.</div>
 {% endif %}
 
-<a class="btn btn-outline-secondary mt-2" href="{{ url_for('submit_content') }}">← Submit New Content</a>
+<a class="btn btn-outline-secondary mt-2" href="{{ url_for('submit_content') }}">Back to Submit Content</a>
 {% endblock %}

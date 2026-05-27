@@ -12,6 +12,7 @@ connection pool and prevent race conditions.
 
 import logging
 from datetime import datetime, timezone
+import re
 
 import pymongo
 from bson import ObjectId
@@ -595,36 +596,17 @@ class Database:
 
     def insertVetDetails(self, vetDocument: dict) -> str:
         """
-        Insert a veterinary partner details document.
+        Insert a veterinary clinic directory record.
 
         Parameters
         ----------
         vetDocument : dict
-            Includes ``userId``, ``clinicName``, ``licenseNumber``,
-            ``specialisations``, ``region``, and ``contactInfo``.
-
-        Returns
-        -------
-        str
-            The ``_id`` of the inserted record.
+            Includes clinicName, licenseNumber, specialisations, region,
+            contactInfo, operatingHours, and createdByStaffId.
         """
         vetDocument["createdAt"] = datetime.now(timezone.utc)
         result = self._vetDetails.insert_one(vetDocument)
         return str(result.inserted_id)
-
-    def findVetByUserId(self, userId: str) -> dict | None:
-        """
-        Retrieve vet details linked to a specific user account.
-
-        Parameters
-        ----------
-        userId : str
-
-        Returns
-        -------
-        dict or None
-        """
-        return self._vetDetails.find_one({"userId": userId})
 
     def findVetsByRegion(self, region: str) -> list[dict]:
         """
@@ -638,7 +620,11 @@ class Database:
         -------
         list[dict]
         """
-        return list(self._vetDetails.find({"region": region, "isActive": True}))
+        regionPattern = f"^{re.escape(region.strip())}$"
+        return list(self._vetDetails.find({
+            "region": {"$regex": regionPattern, "$options": "i"},
+            "isActive": True,
+        }))
 
     # ==================================================================
     # REGIONAL ALERT COLLECTION METHODS
@@ -676,7 +662,11 @@ class Database:
         -------
         list[dict]
         """
-        return list(self._alerts.find({"region": region, "isActive": True}))
+        regionPattern = f"^{re.escape(region.strip())}$"
+        return list(self._alerts.find({
+            "region": {"$regex": regionPattern, "$options": "i"},
+            "isActive": True,
+        }))
 
     def findAllAlerts(self) -> list[dict]:
         """
@@ -868,31 +858,6 @@ class Database:
         except Exception:
             return None
 
-    def recordQuizFeedback(self, quizId: str, feedbackDocument: dict) -> dict | None:
-        """
-        Atomically append a feedback entry to a quiz's ``feedbackList`` array.
-
-        Uses ``$push`` to guarantee the append is atomic and no concurrent
-        write can corrupt the array.
-
-        Parameters
-        ----------
-        quizId : str
-        feedbackDocument : dict
-            The feedback payload (score, comments, submittedBy, etc.).
-
-        Returns
-        -------
-        dict or None
-            The updated quiz document.
-        """
-        feedbackDocument["submittedAt"] = datetime.now(timezone.utc)
-        return self._quizzes.find_one_and_update(
-            {"_id": ObjectId(quizId)},
-            {"$push": {"feedbackList": feedbackDocument}},
-            return_document=pymongo.ReturnDocument.AFTER
-        )
-
     # ==================================================================
     # SEED DATA
     # ==================================================================
@@ -953,7 +918,7 @@ class Database:
                 "role":         ROLE_PET_OWNER,
                 "fullName":     "John Lim",
                 "phoneNumber":  "+60123456789",
-                "region":       "Kuala Lumpur",
+                "region":       "Kuching",
                 "isActive":     True,
             },
         ]
@@ -976,21 +941,27 @@ class Database:
         # ------------------------------------------------------------------
         # 2. VET DETAILS
         # ------------------------------------------------------------------
-        if not self._vetDetails.find_one({"userId": vet1_id}):
-            self.insertVetDetails({
-                "userId":      vet1_id,
-                "clinicName":  "PetCare Veterinary Clinic",
-                "licenseNumber": "VET-MY-00123",
-                "specialisations": ["small animals", "emergency care"],
-                "region":      "Kuala Lumpur",
-                "contactInfo": {
-                    "phone":   "+60312345678",
-                    "address": "123 Jalan Ampang, KL",
-                    "email":   "dr.tan@vetclinic.com"
-                },
-                "isActive":    True,
-            })
-            logger.info("Seeded vet details for dr.tan.")
+        petCareVet = {
+            "clinicName": "PetCare Veterinary Clinic",
+            "licenseNumber": "VET-MY-00123",
+            "specialisations": ["small animals", "emergency care"],
+            "region": "Kuching",
+            "contactInfo": {
+                "phone": "+60312345678",
+                "address": "123 Jalan OTS, Kuching",
+                "email": "petcare@example.com"
+            },
+            "operatingHours": "9:00 AM - 6:00 PM",
+            "createdByStaffId": staff_id,
+            "isActive": True,
+        }
+        if not self._vetDetails.find_one({"clinicName": "PetCare Veterinary Clinic"}):
+            self.insertVetDetails(petCareVet)
+        else:
+            self._vetDetails.update_one(
+                {"clinicName": "PetCare Veterinary Clinic"},
+                {"$set": petCareVet},
+            )
 
         # ------------------------------------------------------------------
         # 3. PET PROFILES
@@ -1025,84 +996,170 @@ class Database:
         # ------------------------------------------------------------------
         # 4. FIRST AID GUIDES
         # ------------------------------------------------------------------
+        obsoleteGuideTitles = [
+            "Choking in Dogs",
+            "Heatstroke in Dogs",
+            "Minor Wound Care for Cats",
+            "Seizures in Dogs",
+        ]
+        self._firstAid.delete_many({"title": {"$in": obsoleteGuideTitles}})
+
         guides = [
             {
-                "title":        "Choking in Dogs",
+                "title":        "Breathing Difficulty in Dogs",
                 "species":      "dog",
                 "urgencyLevel": URGENCY_EMERGENCY,
-                "keywords":     ["choking", "airway obstruction", "coughing", "gagging"],
+                "keywords":     ["breathing", "breathing difficulty", "wheezing", "shortness of breath"],
                 "steps": [
-                    "Stay calm and restrain the dog safely.",
-                    "Open the mouth and look for visible foreign objects.",
-                    "If visible, sweep with a finger — do NOT perform blind sweeps.",
-                    "For small dogs: hold upside-down and give 5 firm back blows.",
-                    "For large dogs: apply modified Heimlich — fist behind last rib, "
-                    "thrust upward and inward 5 times.",
-                    "If unconscious: begin pet CPR and rush to vet immediately.",
+                    "Keep the dog calm and limit movement.",
+                    "Move the dog to a cool, well-ventilated area.",
+                    "Check for visible airway blockage without forcing the mouth open.",
+                    "Contact an emergency veterinarian immediately.",
                 ],
-                "warningNotes": "Do not leave the animal alone. Seek emergency vet care "
-                                "even after successful removal.",
+                "warningNotes": "Do not force food, water, or medication. Breathing difficulty is an emergency.",
                 "approvedBy":   staff_id,
                 "isApproved":   True,
             },
             {
-                "title":        "Heatstroke in Dogs",
-                "species":      "dog",
-                "urgencyLevel": URGENCY_EMERGENCY,
-                "keywords":     ["heatstroke", "overheating", "panting", "collapse", "heat"],
-                "steps": [
-                    "Move the dog to a cool, shaded area immediately.",
-                    "Apply cool (not ice-cold) water to paws, groin, armpits, and neck.",
-                    "Fan the dog to aid evaporative cooling.",
-                    "Offer small sips of cool water if conscious.",
-                    "Monitor rectal temperature — target below 39.5 °C.",
-                    "Transport to veterinary clinic urgently.",
-                ],
-                "warningNotes": "Never use ice or ice-cold water — rapid cooling can cause shock.",
-                "approvedBy":   staff_id,
-                "isApproved":   True,
-            },
-            {
-                "title":        "Minor Wound Care for Cats",
+                "title":        "Breathing Difficulty in Cats",
                 "species":      "cat",
-                "urgencyLevel": URGENCY_NON_URGENT,
-                "keywords":     ["wound", "cut", "scratch", "bleeding", "laceration"],
+                "urgencyLevel": URGENCY_EMERGENCY,
+                "keywords":     ["breathing", "breathing difficulty", "wheezing", "open mouth breathing"],
                 "steps": [
-                    "Wear gloves — even friendly cats may bite when in pain.",
-                    "Apply gentle pressure with a clean cloth to stop bleeding.",
-                    "Clean with saline solution or clean running water.",
-                    "Do not use hydrogen peroxide or alcohol — they damage tissue.",
-                    "Apply pet-safe antiseptic if available.",
-                    "Monitor for signs of infection over 48 hours.",
-                    "Seek vet care if wound is deep, gaping, or does not stop bleeding.",
+                    "Keep the cat calm and avoid handling more than necessary.",
+                    "Place the cat in a quiet, well-ventilated carrier.",
+                    "Do not attempt home treatment for open-mouth breathing.",
+                    "Transport to an emergency veterinarian immediately.",
                 ],
-                "warningNotes": "Cat bites and scratches carry high infection risk — "
-                                "consult vet if redness or swelling develops.",
+                "warningNotes": "Open-mouth breathing in cats is always urgent and requires veterinary care.",
                 "approvedBy":   staff_id,
                 "isApproved":   True,
             },
             {
-                "title":        "Seizures in Dogs",
+                "title":        "Bleeding and Wound Care for Dogs",
                 "species":      "dog",
                 "urgencyLevel": URGENCY_URGENT,
-                "keywords":     ["seizure", "convulsion", "fitting", "epilepsy", "tremors"],
+                "keywords":     ["bleeding", "wound", "cut", "scratch", "laceration"],
                 "steps": [
-                    "Do NOT restrain the dog or put hands near the mouth.",
-                    "Clear the surrounding area of hard or sharp objects.",
-                    "Time the seizure — note start and end time.",
-                    "Keep room dark and quiet to reduce stimulation.",
-                    "After the seizure: keep dog warm and calm.",
-                    "If seizure lasts > 5 minutes or multiple seizures in 24 hrs: "
-                    "emergency vet immediately.",
+                    "Apply gentle pressure with a clean cloth or bandage.",
+                    "Keep the dog still to reduce further bleeding.",
+                    "Rinse minor dirt away with clean water if safe.",
+                    "Seek veterinary care if bleeding continues or the wound is deep.",
                 ],
-                "warningNotes": "Dogs do not swallow their tongue during seizures — "
-                                "do not attempt to open the mouth.",
+                "warningNotes": "Do not remove deeply embedded objects and do not apply a tight tourniquet.",
+                "approvedBy":   staff_id,
+                "isApproved":   True,
+            },
+            {
+                "title":        "Bleeding and Wound Care for Cats",
+                "species":      "cat",
+                "urgencyLevel": URGENCY_URGENT,
+                "keywords":     ["bleeding", "wound", "cut", "scratch", "laceration"],
+                "steps": [
+                    "Approach calmly and avoid sudden handling.",
+                    "Apply gentle pressure with a clean cloth if the cat allows it.",
+                    "Keep the cat indoors and limit movement.",
+                    "Seek veterinary care if bleeding continues or the wound is deep.",
+                ],
+                "warningNotes": "Cat wounds can become infected quickly. Do not use human antiseptics.",
+                "approvedBy":   staff_id,
+                "isApproved":   True,
+            },
+            {
+                "title":        "Vomiting in Dogs",
+                "species":      "dog",
+                "urgencyLevel": URGENCY_URGENT,
+                "keywords":     ["vomiting", "throwing up", "nausea", "retching"],
+                "steps": [
+                    "Remove food temporarily and observe the dog closely.",
+                    "Offer small amounts of clean water if the dog can drink safely.",
+                    "Check for repeated vomiting, weakness, bloating, or blood.",
+                    "Contact a veterinarian if symptoms continue or worsen.",
+                ],
+                "warningNotes": "Seek urgent help if vomiting includes blood, severe weakness, or a swollen abdomen.",
+                "approvedBy":   staff_id,
+                "isApproved":   True,
+            },
+            {
+                "title":        "Vomiting in Cats",
+                "species":      "cat",
+                "urgencyLevel": URGENCY_URGENT,
+                "keywords":     ["vomiting", "throwing up", "nausea", "retching"],
+                "steps": [
+                    "Remove food temporarily and monitor the cat closely.",
+                    "Ensure clean water is available, but do not force drinking.",
+                    "Check for repeated vomiting, lethargy, or blood.",
+                    "Contact a veterinarian if vomiting repeats or the cat appears weak.",
+                ],
+                "warningNotes": "Repeated vomiting in cats can quickly lead to dehydration.",
+                "approvedBy":   staff_id,
+                "isApproved":   True,
+            },
+            {
+                "title":        "Limping in Dogs",
+                "species":      "dog",
+                "urgencyLevel": URGENCY_NON_URGENT,
+                "keywords":     ["limping", "lameness", "leg pain", "paw injury"],
+                "steps": [
+                    "Limit the dog's movement and prevent running or jumping.",
+                    "Check the paw for thorns, cuts, swelling, or trapped objects.",
+                    "Apply a cold compress if swelling is visible.",
+                    "Arrange a vet check if limping persists or the dog cannot bear weight.",
+                ],
+                "warningNotes": "Do not give human painkillers unless prescribed by a veterinarian.",
+                "approvedBy":   staff_id,
+                "isApproved":   True,
+            },
+            {
+                "title":        "Limping in Cats",
+                "species":      "cat",
+                "urgencyLevel": URGENCY_NON_URGENT,
+                "keywords":     ["limping", "lameness", "leg pain", "paw injury"],
+                "steps": [
+                    "Keep the cat indoors and restrict climbing or jumping.",
+                    "Check the paw gently for visible injury or swelling.",
+                    "Place food, water, and litter nearby to reduce movement.",
+                    "Arrange a vet check if limping continues or the cat hides in pain.",
+                ],
+                "warningNotes": "Cats often hide pain; persistent limping should be checked by a vet.",
+                "approvedBy":   staff_id,
+                "isApproved":   True,
+            },
+            {
+                "title":        "Itching and Skin Irritation in Dogs",
+                "species":      "dog",
+                "urgencyLevel": URGENCY_NON_URGENT,
+                "keywords":     ["itching", "skin irritation", "rash", "scratching"],
+                "steps": [
+                    "Prevent excessive scratching or licking if possible.",
+                    "Check the skin for redness, fleas, swelling, or discharge.",
+                    "Rinse mild irritants away with clean water.",
+                    "Schedule a vet check if irritation spreads or does not improve.",
+                ],
+                "warningNotes": "Do not apply human creams or medication unless advised by a veterinarian.",
+                "approvedBy":   staff_id,
+                "isApproved":   True,
+            },
+            {
+                "title":        "Itching and Skin Irritation in Cats",
+                "species":      "cat",
+                "urgencyLevel": URGENCY_NON_URGENT,
+                "keywords":     ["itching", "skin irritation", "rash", "scratching"],
+                "steps": [
+                    "Prevent over-grooming if it is causing wounds.",
+                    "Check for fleas, redness, scabs, or swelling.",
+                    "Avoid bathing unless advised, as it may increase stress.",
+                    "Schedule a vet check if irritation persists or wounds appear.",
+                ],
+                "warningNotes": "Do not use dog flea products or human skin products on cats.",
                 "approvedBy":   staff_id,
                 "isApproved":   True,
             },
         ]
 
         for guide in guides:
+            if guide["title"] in obsoleteGuideTitles:
+                continue
             if not self._firstAid.find_one({"title": guide["title"]}):
                 self.insertFirstAidGuide(guide)
                 logger.info("Seeded first aid guide: %s", guide["title"])
@@ -1161,7 +1218,7 @@ class Database:
                 "description": "Multiple unvaccinated dogs in Klang Valley have tested "
                                "positive for parvovirus. Ensure dogs are vaccinated and "
                                "avoid contact with unknown dogs.",
-                "region":      "Kuala Lumpur",
+                "region":      "Kuching",
                 "severity":    URGENCY_URGENT,
                 "isActive":    True,
                 "createdBy":   staff_id,
@@ -1177,7 +1234,6 @@ class Database:
                 "topic":           "first aid",
                 "difficultyLevel": "beginner",
                 "createdBy":       staff_id,
-                "feedbackList":    [],
                 "questions": [
                     {
                         "questionId":   "Q001",
@@ -1189,8 +1245,10 @@ class Database:
                             "D. Leave the dog to cough it out",
                         ],
                         "correctAnswer": "B",
-                        "explanation":  "Blind sweeps can push the object deeper. "
-                                        "Only remove if the object is clearly visible.",
+                        "feedback":  {
+                            "explanationText": "Blind sweeps can push the object deeper. "
+                                               "Only remove if the object is clearly visible."
+                        },
                     },
                     {
                         "questionId":   "Q002",
@@ -1202,8 +1260,10 @@ class Database:
                             "D. Shaded area",
                         ],
                         "correctAnswer": "C",
-                        "explanation":  "Ice-cold water causes rapid vasoconstriction "
-                                        "and may lead to shock.",
+                        "feedback":  {
+                            "explanationText": "Ice-cold water causes rapid vasoconstriction "
+                                               "and may lead to shock."
+                        },
                     },
                     {
                         "questionId":   "Q003",
@@ -1216,12 +1276,120 @@ class Database:
                             "D. 10 minutes",
                         ],
                         "correctAnswer": "C",
-                        "explanation":  "A seizure lasting over 5 minutes (status epilepticus) "
-                                        "is a veterinary emergency.",
+                        "feedback":  {
+                            "explanationText": "A seizure lasting over 5 minutes (status epilepticus) "
+                                               "is a veterinary emergency."
+                        },
                     },
                 ],
             })
             logger.info("Seeded educational quiz.")
+
+        if not self._quizzes.find_one({"title": "Cat Emergency Basics"}):
+            self.insertQuiz({
+                "title":           "Cat Emergency Basics",
+                "topic":           "cat first aid",
+                "difficultyLevel": "beginner",
+                "createdBy":       staff_id,
+                "questions": [
+                    {
+                        "questionId":   "C001",
+                        "questionText": "What should you do if a cat is breathing with its mouth open?",
+                        "options": [
+                            "A. Wait and observe for a full day",
+                            "B. Give human cough medicine",
+                            "C. Keep the cat calm and seek emergency veterinary care",
+                            "D. Force the cat to drink water",
+                        ],
+                        "correctAnswer": "C",
+                        "feedback": {
+                            "explanationText": "Open-mouth breathing in cats is an emergency and needs urgent veterinary care."
+                        },
+                    },
+                    {
+                        "questionId":   "C002",
+                        "questionText": "Which product should never be used on cats?",
+                        "options": [
+                            "A. Clean water",
+                            "B. Dog flea treatment",
+                            "C. A clean towel",
+                            "D. A quiet carrier",
+                        ],
+                        "correctAnswer": "B",
+                        "feedback": {
+                            "explanationText": "Some dog flea products are toxic to cats and can cause serious poisoning."
+                        },
+                    },
+                    {
+                        "questionId":   "C003",
+                        "questionText": "Why should a limping cat be monitored closely?",
+                        "options": [
+                            "A. Cats often hide pain",
+                            "B. Limping always means the cat is playing",
+                            "C. Cats cannot injure their legs",
+                            "D. It is never a veterinary issue",
+                        ],
+                        "correctAnswer": "A",
+                        "feedback": {
+                            "explanationText": "Cats may hide pain, so persistent limping should be checked by a vet."
+                        },
+                    },
+                ],
+            })
+            logger.info("Seeded cat educational quiz.")
+
+        if not self._quizzes.find_one({"title": "Pet Safety and Prevention"}):
+            self.insertQuiz({
+                "title":           "Pet Safety and Prevention",
+                "topic":           "prevention",
+                "difficultyLevel": "beginner",
+                "createdBy":       staff_id,
+                "questions": [
+                    {
+                        "questionId":   "P001",
+                        "questionText": "Why should pet owners keep emergency clinic information available?",
+                        "options": [
+                            "A. It helps owners act quickly during emergencies",
+                            "B. It replaces veterinary treatment",
+                            "C. It is only useful for staff users",
+                            "D. It prevents all pet illnesses",
+                        ],
+                        "correctAnswer": "A",
+                        "feedback": {
+                            "explanationText": "Quick access to clinic information helps owners respond faster in emergencies."
+                        },
+                    },
+                    {
+                        "questionId":   "P002",
+                        "questionText": "What is a good reason to keep pet profiles updated?",
+                        "options": [
+                            "A. To make the app look full",
+                            "B. To reuse accurate pet details during triage",
+                            "C. To avoid all future vet visits",
+                            "D. To remove the need for first-aid guidance",
+                        ],
+                        "correctAnswer": "B",
+                        "feedback": {
+                            "explanationText": "Updated pet profiles help triage use accurate species, age, and medical details."
+                        },
+                    },
+                    {
+                        "questionId":   "P003",
+                        "questionText": "What should owners do before giving pets human medication?",
+                        "options": [
+                            "A. Give a smaller dose",
+                            "B. Mix it with food",
+                            "C. Ask a veterinarian first",
+                            "D. Use any medicine labelled for children",
+                        ],
+                        "correctAnswer": "C",
+                        "feedback": {
+                            "explanationText": "Human medication can be dangerous for pets and should only be given with veterinary advice."
+                        },
+                    },
+                ],
+            })
+            logger.info("Seeded prevention educational quiz.")
 
         logger.info("seed_data() complete.")
 
