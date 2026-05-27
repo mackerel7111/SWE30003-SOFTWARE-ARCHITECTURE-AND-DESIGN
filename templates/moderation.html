@@ -35,8 +35,8 @@
         </div>
     {% endfor %}
 {% else %}
-    <div class="alert alert-info">No pending requests in the moderation queue.</div>
+    <div class="alert alert-info">No submissions in the moderation queue yet.</div>
 {% endif %}
 
-<a class="btn btn-outline-secondary mt-2" href="{{ url_for('submit_content') }}">← Create Another Submission</a>
+<a class="btn btn-outline-secondary mt-2" href="{{ url_for('submit_content') }}">← Submit New Content</a>
 {% endblock %}

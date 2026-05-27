@@ -17,8 +17,10 @@ from entities.veterinary_partner import VeterinaryPartner
 app = Flask(__name__)
 app.secret_key = "pet-first-aid-dev-key"
 
+# Bootstrap: initialise database and seed content
 database = Database()
 database.connect()
+database.seed_data()
 
 authentication_manager = AuthenticationManager(database)
 content_repository = ContentRepository()
@@ -35,6 +37,7 @@ web_interface = WebInterface(
     content_moderator=content_moderator,
 )
 
+# Seed demo user accounts
 demo_owner = PetOwner(
     user_id="U001",
     email_address="owner@example.com",
@@ -201,7 +204,7 @@ def alerts():
                 target_region=request.form.get("target_region", "").strip(),
                 urgency_level=request.form.get("urgency_level", "Low"),
             )
-            message = f"Alert {alert.alert_id} created."
+            message = f"Alert {alert.alert_id} created and saved to database."
             region = alert.target_region
 
         if action == "fetch":
@@ -238,7 +241,7 @@ def submit_content():
             submitted_by=request.form.get("submitted_by", "").strip(),
             proposed_data=proposed_data,
         )
-        message = f"Submission {request_obj.request_id} is pending review."
+        message = f"Submission {request_obj.request_id} saved to database and is pending review."
 
     return render_template("submit_content.html", message=message)
 
@@ -259,7 +262,7 @@ def moderation():
         if result:
             message = f"Request {result.request_id} marked as {result.status}."
 
-    requests = web_interface.display_moderation_queue()
+    requests = content_moderator.fetch_all_requests()
     return render_template("moderation.html", requests=requests, message=message)
 
 
