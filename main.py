@@ -4,6 +4,7 @@ from flask import Flask, redirect, render_template, request, session, url_for
 
 from Backend.database import Database
 from Backend.models import (
+    PetOwner,
     PetProfile,
     ROLE_ASSOCIATION_STAFF,
     ROLE_PET_OWNER,
@@ -13,6 +14,7 @@ from Backend.models import (
     URGENCY_EMERGENCY,
     URGENCY_NON_URGENT,
     URGENCY_URGENT,
+    VeterinaryPartner,
 )
 from Backend.services import (
     AlertBroadcaster,
@@ -238,6 +240,7 @@ def index():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     error = None
+    message = request.args.get("message")
 
     if request.method == "POST":
         email_address = form_text("email_address")
@@ -254,7 +257,62 @@ def login():
 
         error = "Invalid email or password."
 
-    return render_template("login.html", error=error)
+    return render_template("login.html", error=error, message=message)
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if get_current_user() is not None:
+        return redirect(url_for("dashboard"))
+
+    error = None
+
+    if request.method == "POST":
+        try:
+            role = request.form.get("role", ROLE_PET_OWNER)
+            email = form_text("email")
+            full_name = form_text("full_name")
+            password = request.form.get("password", "")
+            confirm_password = request.form.get("confirm_password", "")
+
+            if database.findUserByEmail(email):
+                raise ValueError("An account with this email already exists.")
+            if len(password) < 6:
+                raise ValueError("Password must be at least 6 characters.")
+            if password != confirm_password:
+                raise ValueError("Passwords do not match.")
+
+            password_hash = f"hashed_{password}_placeholder"
+
+            if role == ROLE_VET_PARTNER:
+                specialisations = [
+                    item.strip()
+                    for item in request.form.get("specialisations", "").split(",")
+                    if item.strip()
+                ]
+                user = VeterinaryPartner(
+                    email=email,
+                    fullName=full_name,
+                    passwordHash=password_hash,
+                    licenseNumber=form_text("license_number"),
+                    specialisations=specialisations,
+                    isVerified=False,
+                )
+            else:
+                user = PetOwner(
+                    email=email,
+                    fullName=full_name,
+                    passwordHash=password_hash,
+                    phoneNumber=form_text("phone_number"),
+                    region=form_text("region"),
+                )
+
+            database.insertUser(user.toDict())
+            return redirect(url_for("login", message="Registration successful. Please log in."))
+        except ValueError as err:
+            error = str(err)
+
+    return render_template("register.html", error=error)
 
 
 @app.route("/logout")

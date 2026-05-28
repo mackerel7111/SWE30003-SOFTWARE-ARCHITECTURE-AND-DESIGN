@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Register | Pet First Aid{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-3">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="h4 mb-1">Create Account</h1>
+                <p class="text-muted mb-3">Register as a pet owner or veterinary partner. Staff accounts are created internally.</p>
+
+                {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Account Type</label>
+                            <select class="form-select" name="role" id="role" required>
+                                <option value="pet_owner">Pet Owner</option>
+                                <option value="veterinary_partner">Veterinary Partner</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name</label>
+                            <input class="form-control" name="full_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address</label>
+                            <input class="form-control" type="email" name="email" placeholder="you@example.com" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Region</label>
+                            <input class="form-control" name="region" placeholder="e.g. Kuching">
+                        </div>
+                        <div class="col-md-6 owner-field">
+                            <label class="form-label">Phone Number</label>
+                            <input class="form-control" name="phone_number" placeholder="e.g. 0123456789">
+                        </div>
+                        <div class="col-md-6 vet-field" style="display:none;">
+                            <label class="form-label">License Number</label>
+                            <input class="form-control" name="license_number" id="license_number" placeholder="e.g. VET-MY-00123">
+                        </div>
+                        <div class="col-12 vet-field" style="display:none;">
+                            <label class="form-label">Specialisations <span class="text-muted fw-normal">(comma-separated)</span></label>
+                            <input class="form-control" name="specialisations" placeholder="small animals, emergency care">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Password</label>
+                            <input class="form-control" type="password" name="password" minlength="6" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Confirm Password</label>
+                            <input class="form-control" type="password" name="confirm_password" minlength="6" required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button class="btn btn-primary" type="submit">Register</button>
+                        <a class="btn btn-outline-secondary" href="{{ url_for('login') }}">Back to Login</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const role = document.getElementById('role');
+    const vetFields = document.querySelectorAll('.vet-field');
+    const ownerFields = document.querySelectorAll('.owner-field');
+    const licenseNumber = document.getElementById('license_number');
+
+    function updateRoleFields() {
+        const isVet = role.value === 'veterinary_partner';
+
+        vetFields.forEach(function (field) {
+            field.style.display = isVet ? '' : 'none';
+        });
+        ownerFields.forEach(function (field) {
+            field.style.display = isVet ? 'none' : '';
+        });
+
+        if (licenseNumber) {
+            if (isVet) {
+                licenseNumber.setAttribute('required', 'required');
+            } else {
+                licenseNumber.removeAttribute('required');
+            }
+        }
+    }
+
+    role.addEventListener('change', updateRoleFields);
+    updateRoleFields();
+});
+</script>
+{% endblock %}
