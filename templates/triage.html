@@ -79,13 +79,17 @@
                 </div>
             </div>
 
-            {% if result.should_escalate_to_vet %}
+            {% if result.should_seek_emergency_care %}
                 <div class="alert alert-danger py-2">
-                    ⚠️ <strong>High urgency — seek professional veterinary care immediately.</strong>
+                    <strong>High urgency - seek professional veterinary care immediately.</strong>
+                </div>
+            {% elif result.should_contact_vet %}
+                <div class="alert alert-warning py-2">
+                    <strong>Medium urgency - contact a veterinarian soon and monitor your pet closely.</strong>
                 </div>
             {% else %}
                 <div class="alert alert-info py-2">
-                    ℹ️ Monitor your pet closely. Seek veterinary care if symptoms worsen.
+                    Monitor your pet closely. Seek veterinary care if symptoms worsen.
                 </div>
             {% endif %}
 

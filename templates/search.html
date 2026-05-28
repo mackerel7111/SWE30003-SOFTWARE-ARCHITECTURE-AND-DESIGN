@@ -26,6 +26,7 @@
                     id="keyword"
                     name="keyword"
                     value="{{ keyword }}"
+                    data-default-region="{{ saved_region }}"
                     placeholder="{% if search_type == 'clinic' %}e.g. Kuching{% elif search_type == 'video' %}e.g. dog{% else %}e.g. vomiting{% endif %}"
                     required
                 >
@@ -107,7 +108,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateSearchTermHint() {
         if (searchType.value === 'clinic') {
             keywordLabel.textContent = 'Region';
-            keyword.placeholder = 'e.g. Kuching';
+            keyword.placeholder = keyword.dataset.defaultRegion || 'e.g. Kuching';
+            if (!keyword.value && keyword.dataset.defaultRegion) {
+                keyword.value = keyword.dataset.defaultRegion;
+            }
         } else if (searchType.value === 'video') {
             keywordLabel.textContent = 'Species';
             keyword.placeholder = 'e.g. dog';

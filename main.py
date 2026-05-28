@@ -94,6 +94,18 @@ def current_session_user():
     return session.get("user")
 
 
+def get_current_user_region():
+    session_user = current_session_user()
+    if not session_user:
+        return ""
+
+    user_document = database.findUserById(session_user.get("userId"))
+    if not user_document:
+        return ""
+
+    return user_document.get("region", "")
+
+
 def require_role(*allowed_roles):
     guard = require_login()
     if guard:
@@ -424,7 +436,8 @@ def triage():
                 species=pet_profile.species,
                 symptom_category=symptom_category,
                 urgency_level=urgency_level,
-                should_escalate_to_vet=assessment.get("urgencyLevel") != URGENCY_NON_URGENT,
+                should_contact_vet=assessment.get("urgencyLevel") == URGENCY_URGENT,
+                should_seek_emergency_care=assessment.get("urgencyLevel") == URGENCY_EMERGENCY,
                 first_aid_guide=guide_for_template(matched_guides[0]) if matched_guides else None,
             )
         except ValueError:
@@ -449,6 +462,7 @@ def search():
     guides = None
     clinics = None
     videos = None
+    saved_region = get_current_user_region()
 
     if request.method == "POST":
         keyword = form_text("keyword")
@@ -462,6 +476,7 @@ def search():
             guides = [guide_for_template(guide) for guide in matched_guides]
 
         if search_type == "clinic":
+            keyword = keyword or saved_region
             clinics = [
                 clinic_for_template(clinic)
                 for clinic in search_engine.searchVetsByRegion(keyword)
@@ -480,6 +495,7 @@ def search():
         guides=guides,
         clinics=clinics,
         videos=videos,
+        saved_region=saved_region,
     )
 
 
@@ -530,7 +546,8 @@ def alerts():
     if guard:
         return guard
 
-    region = ""
+    saved_region = get_current_user_region()
+    region = saved_region if get_current_role() == "PetOwner" else ""
     active_alerts = None
     message = None
 
@@ -560,8 +577,9 @@ def alerts():
             message = f"Alert {alert_id} created and saved to database."
 
         if action == "fetch":
-            region = form_text("region")
+            region = form_text("region") or saved_region
 
+    if region:
         active_alerts = [
             alert_for_template(alert)
             for alert in alert_broadcaster.fetchLocalAlerts(region)
@@ -570,6 +588,7 @@ def alerts():
     return render_template(
         "alerts.html",
         region=region,
+        saved_region=saved_region,
         alerts=active_alerts,
         message=message,
     )
