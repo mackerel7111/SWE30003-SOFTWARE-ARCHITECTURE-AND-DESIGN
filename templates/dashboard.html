@@ -23,35 +23,35 @@
 
         <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('pets') }}">
-                <span class="card-icon">+</span>
+                <span class="card-icon" aria-hidden="true"><i data-lucide="paw-print"></i></span>
                 <h2>My Pet Profiles</h2>
                 <p>Add and view saved pets before using triage.</p>
             </a>
         </div>
         <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('triage') }}">
-                <span class="card-icon">🩺</span>
+                <span class="card-icon" aria-hidden="true"><i data-lucide="activity"></i></span>
                 <h2>Symptom Triage</h2>
                 <p>Enter your pet's symptoms to get an urgency assessment and first-aid guidance.</p>
             </a>
         </div>
         <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('search') }}">
-                <span class="card-icon">🔍</span>
+                <span class="card-icon" aria-hidden="true"><i data-lucide="search"></i></span>
                 <h2>Search Content</h2>
                 <p>Search first-aid guides or find nearby vet clinics by keyword or region.</p>
             </a>
         </div>
         <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('alerts') }}">
-                <span class="card-icon">🔔</span>
+                <span class="card-icon" aria-hidden="true"><i data-lucide="bell"></i></span>
                 <h2>Regional Alerts</h2>
                 <p>View active health alerts affecting your region.</p>
             </a>
         </div>
         <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('quiz') }}">
-                <span class="card-icon">?</span>
+                <span class="card-icon" aria-hidden="true"><i data-lucide="help-circle"></i></span>
                 <h2>Educational Quiz</h2>
                 <p>Answer multiple-choice questions and review first-aid explanations.</p>
             </a>
@@ -61,16 +61,23 @@
 
         <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('alerts') }}">
-                <span class="card-icon">📢</span>
+                <span class="card-icon" aria-hidden="true"><i data-lucide="megaphone"></i></span>
                 <h2>Manage Alerts</h2>
                 <p>Create and broadcast regional pet health alerts to pet owners.</p>
             </a>
         </div>
         <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('moderation') }}">
-                <span class="card-icon">✅</span>
+                <span class="card-icon" aria-hidden="true"><i data-lucide="check-circle"></i></span>
                 <h2>Content Moderation</h2>
                 <p>Review, approve, or reject content submissions from veterinary partners.</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a class="dashboard-card" href="{{ url_for('vet_details') }}">
+                <span class="card-icon" aria-hidden="true"><i data-lucide="building"></i></span>
+                <h2>Vet Details</h2>
+                <p>Add clinic directory records that pet owners can search by region.</p>
             </a>
         </div>
 
@@ -78,7 +85,7 @@
 
         <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('submit_content') }}">
-                <span class="card-icon">📝</span>
+                <span class="card-icon" aria-hidden="true"><i data-lucide="file-text"></i></span>
                 <h2>Submit Content</h2>
                 <p>Propose new first-aid guides for review by association staff.</p>
             </a>

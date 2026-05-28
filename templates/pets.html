@@ -14,40 +14,14 @@
     <div class="alert alert-danger">{{ error }}</div>
 {% endif %}
 
-<div class="d-flex flex-wrap gap-2 mb-4">
+<p class="section-title">Actions</p>
+<div class="page-actions d-flex flex-wrap gap-2 mb-4">
     <a class="btn btn-primary" href="{{ url_for('pets', mode='add') }}">Add Pet Profile</a>
     <a class="btn btn-outline-primary" href="{{ url_for('pets', mode='edit') }}">Edit Pet Profile</a>
 </div>
 
-<p class="section-title">Saved Pet Profiles</p>
-{% if pets %}
-    <div class="row g-3 mb-4">
-        {% for pet in pets %}
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h2 class="h5 mb-1">{{ pet.name }}</h2>
-                        <p class="text-muted mb-2">{{ pet.species | title }}{% if pet.breed %} - {{ pet.breed }}{% endif %}</p>
-                        <p class="mb-1"><strong>Age:</strong> {{ pet.age }} years</p>
-                        <p class="mb-1"><strong>Weight:</strong> {{ pet.weight_kg }} kg</p>
-                        {% if pet.medical_history %}
-                            <p class="mb-1"><strong>Medical History:</strong> {{ pet.medical_history }}</p>
-                        {% endif %}
-                        {% if pet.emergency_notes %}
-                            <p class="mb-2"><strong>Emergency Notes:</strong> {{ pet.emergency_notes }}</p>
-                        {% endif %}
-                        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('pets', mode='edit', pet_id=pet.pet_id) }}">Edit</a>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-{% else %}
-    <div class="alert alert-info">No pet profiles saved yet.</div>
-{% endif %}
-
 {% if form_mode == "edit" %}
-    <form method="get" class="card mb-4" novalidate>
+    <form method="get" class="card pet-form-card mb-4" novalidate>
         <div class="card-body">
             <input type="hidden" name="mode" value="edit">
             <p class="section-title" style="margin-top:0;">Choose Pet to Edit</p>
@@ -70,7 +44,7 @@
 {% endif %}
 
 {% if form_mode == "add" or selected_pet %}
-    <form method="post" class="card mb-4" novalidate>
+    <form method="post" class="card pet-form-card mb-4" novalidate>
         <div class="card-body">
             <input type="hidden" name="action" value="{{ 'edit' if selected_pet else 'add' }}">
             {% if selected_pet %}
@@ -140,5 +114,42 @@
             </div>
         </div>
     </form>
+{% endif %}
+
+<p class="section-title">Saved Pet Profiles</p>
+{% if pets %}
+    <div class="row g-3 mb-4">
+        {% for pet in pets %}
+            <div class="col-md-6">
+                <details class="pet-card">
+                    <summary class="pet-card-summary">
+                        <div class="pet-card-title">
+                            <span class="pet-name">{{ pet.name }}</span>
+                            <span class="text-muted" style="font-size:0.85rem;">{{ pet.species | title }}{% if pet.breed %} - {{ pet.breed }}{% endif %}</span>
+                        </div>
+                        <div class="pet-card-meta">
+                            <span>{{ pet.age }} yrs</span>
+                            <span>{{ pet.weight_kg }} kg</span>
+                        </div>
+                    </summary>
+                    <div class="pet-card-body">
+                        <h2 class="h5 mb-1">{{ pet.name }}</h2>
+                        <p class="text-muted mb-2">{{ pet.species | title }}{% if pet.breed %} - {{ pet.breed }}{% endif %}</p>
+                        <p class="mb-1"><strong>Age:</strong> {{ pet.age }} years</p>
+                        <p class="mb-1"><strong>Weight:</strong> {{ pet.weight_kg }} kg</p>
+                        {% if pet.medical_history %}
+                            <p class="mb-1"><strong>Medical History:</strong> {{ pet.medical_history }}</p>
+                        {% endif %}
+                        {% if pet.emergency_notes %}
+                            <p class="mb-2"><strong>Emergency Notes:</strong> {{ pet.emergency_notes }}</p>
+                        {% endif %}
+                        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('pets', mode='edit', pet_id=pet.pet_id) }}">Edit</a>
+                    </div>
+                </details>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info mb-4">No pet profiles saved yet.</div>
 {% endif %}
 {% endblock %}

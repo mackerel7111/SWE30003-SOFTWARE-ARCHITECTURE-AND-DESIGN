@@ -179,17 +179,45 @@ class SearchEngine:
 
 class ContentRepository:
     """
-    Control layer manager handling retrieval workflows for educational courses, 
+    Control layer manager handling retrieval workflows for educational courses,
     media components, and public diagnostic tool metrics.
+
+    This class also acts as a Factory for creating content entity objects from
+    database records.
     """
+
+    CONTENT_FIRST_AID_GUIDE = "first_aid_guide"
+    CONTENT_INSTRUCTIONAL_VIDEO = "instructional_video"
+    CONTENT_VET_DETAILS = "vet_details"
+    CONTENT_EDUCATIONAL_QUIZ = "educational_quiz"
+
+    def createContentObject(self, contentType: str, data: dict):
+        """
+        Factory Method for creating content entity objects from raw database data.
+        """
+        if contentType == self.CONTENT_FIRST_AID_GUIDE:
+            return FirstAidGuide.fromDict(data)
+
+        if contentType == self.CONTENT_INSTRUCTIONAL_VIDEO:
+            return InstructionalVideo.fromDict(data)
+
+        if contentType == self.CONTENT_VET_DETAILS:
+            return VetDetails.fromDict(data)
+
+        if contentType == self.CONTENT_EDUCATIONAL_QUIZ:
+            return EducationalQuiz.fromDict(data)
+
+        raise ValueError(f"Unknown content type: {contentType}")
+
     def getFirstAidGuides(self, species: str, keywords: list[str]) -> list[FirstAidGuide]:
         """
         Retrieve approved first-aid guides matching species and keywords.
         """
         db = Database()
         rawGuides = db.searchFirstAidGuides(species, keywords)
+
         return [
-            FirstAidGuide.fromDict(guide)
+            self.createContentObject(self.CONTENT_FIRST_AID_GUIDE, guide)
             for guide in rawGuides
             if guide.get("isApproved")
         ]
@@ -200,49 +228,51 @@ class ContentRepository:
         """
         db = Database()
         rawVets = db.findVetsByRegion(region)
-        return [VetDetails.fromDict(vet) for vet in rawVets]
-    
+
+        return [
+            self.createContentObject(self.CONTENT_VET_DETAILS, vet)
+            for vet in rawVets
+        ]
+
     def addVetDetails(self, clinicData: dict, staffUserId: str) -> str:
+        """
+        Create and persist a staff-maintained veterinary clinic directory record.
+        """
         clinicData["createdByStaffId"] = staffUserId
 
-        vetDetails = VetDetails.fromDict(clinicData)
+        vetDetails = self.createContentObject(
+            self.CONTENT_VET_DETAILS,
+            clinicData
+        )
 
         db = Database()
         return db.insertVetDetails(vetDetails.toDict())
 
-
     def getApprovedVideos(self, species: str) -> list[InstructionalVideo]:
         """
         Fetch educational videos cleared by staff for explicit animal categories.
-
-        Parameters
-        ----------
-        species : str
-
-        Returns
-        -------
-        list[InstructionalVideo]
         """
         db = Database()
         rawVideos = db.findVideosBySpecies(species)
-        return [InstructionalVideo.fromDict(video) for video in rawVideos]
+
+        return [
+            self.createContentObject(self.CONTENT_INSTRUCTIONAL_VIDEO, video)
+            for video in rawVideos
+        ]
 
     def getQuizDetails(self, quizId: str) -> EducationalQuiz | None:
         """
         Retrieve structured data layouts and questions associated with a quiz.
-
-        Parameters
-        ----------
-        quizId : str
-
-        Returns
-        -------
-        EducationalQuiz or None
         """
         db = Database()
         rawQuiz = db.findQuizById(quizId)
+
         if rawQuiz:
-            return EducationalQuiz.fromDict(rawQuiz)
+            return self.createContentObject(
+                self.CONTENT_EDUCATIONAL_QUIZ,
+                rawQuiz
+            )
+
         return None
 
     def getAllQuizzes(self) -> list[EducationalQuiz]:
@@ -250,11 +280,15 @@ class ContentRepository:
         Retrieve all available educational quizzes.
         """
         db = Database()
-        return [EducationalQuiz.fromDict(quiz) for quiz in db.findAllQuizzes()]
+
+        return [
+            self.createContentObject(self.CONTENT_EDUCATIONAL_QUIZ, quiz)
+            for quiz in db.findAllQuizzes()
+        ]
 
     def submitQuizResults(self, quizId: str, submittedAnswers: dict[str, str]) -> dict:
         quiz = self.getQuizDetails(quizId)
-        
+
         if quiz is None:
             raise ValueError("Quiz not found.")
 
@@ -277,8 +311,6 @@ class ContentRepository:
             "totalQuestions": quiz.questionCount,
             "questionResults": questionResults,
         }
-
-
 
 
 class ContentModerator:
@@ -367,13 +399,14 @@ class ContentModerator:
 
 class AlertBroadcaster:
     """
-    Control class designed to register, isolate, and route high-severity warnings 
-    to geographical area destinations.
+    Control class for creating regional alert records and retrieving active alerts
+    by region for database-backed in-app display.
     """
 
     def distributeNewAlert(self, staffUserId: str, title: str, description: str, region: str, severity: str) -> str:
         """
-        Generate and flag an outbreak vector bulletin across active subscriber nodes.
+        Create a regional alert record and persist it for later retrieval by users
+        in the affected region.
 
         Parameters
         ----------

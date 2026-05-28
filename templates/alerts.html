@@ -17,7 +17,7 @@
 <div class="row g-3 mb-4">
     <div class="col-md-4">
         <a class="dashboard-card" href="{{ url_for('alerts', mode='fetch') }}">
-            <span class="card-icon">!</span>
+            <span class="card-icon" aria-hidden="true"><i data-lucide="alert-triangle"></i></span>
             <h2>Fetch Alerts</h2>
             <p>View active alerts by region.</p>
         </a>
@@ -25,7 +25,7 @@
     {% if current_role == "AssociationStaff" %}
         <div class="col-md-4">
             <a class="dashboard-card" href="{{ url_for('alerts', mode='create') }}">
-                <span class="card-icon">+</span>
+                <span class="card-icon" aria-hidden="true"><i data-lucide="plus-circle"></i></span>
                 <h2>Create Alert</h2>
                 <p>Broadcast a new regional health warning.</p>
             </a>

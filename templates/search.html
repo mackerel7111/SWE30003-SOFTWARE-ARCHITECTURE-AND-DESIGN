@@ -94,7 +94,11 @@
             <div class="card mb-3">
                 <div class="card-body">
                     <h3 class="h5 mb-1">{{ clinic.clinic_name }}</h3>
-                    <p class="text-muted mb-1" style="font-size:0.85rem;">📍 {{ clinic.region }} &nbsp;|&nbsp; 🕐 {{ clinic.operating_hours }}</p>
+                    <p class="text-muted mb-1" style="font-size:0.85rem;">
+                        <span class="inline-icon" aria-hidden="true"><i data-lucide="map-pin"></i></span>{{ clinic.region }}
+                        &nbsp;|&nbsp;
+                        <span class="inline-icon" aria-hidden="true"><i data-lucide="clock"></i></span>{{ clinic.operating_hours }}
+                    </p>
                     <a href="{{ clinic.google_maps_link }}" target="_blank" class="btn btn-sm btn-outline-secondary">View on Map</a>
                 </div>
             </div>

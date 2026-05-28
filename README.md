@@ -8,16 +8,18 @@ PetFirstAid is a simple Flask web prototype for the SWE30003 Software Architectu
 - Flask
 - Jinja2 HTML templates
 - Bootstrap via CDN
-- uv for dependency and environment management
+- MongoDB through the backend Database wrapper
+- uv or pip for dependency and environment management
 
 ## Project Structure
 
 ```text
 PetFirstAid/
   main.py              Flask application entry point
-  entities/            Entity/domain classes
-  controls/            Control/application logic classes
-  boundaries/          Boundary classes such as Database and WebInterface
+  Backend/
+    models.py          Entity/domain classes
+    services.py        Control/service classes
+    database.py        MongoDB persistence boundary
   templates/           HTML templates rendered by Flask/Jinja2
   static/              CSS/static assets
   pyproject.toml       Project dependencies
@@ -35,8 +37,10 @@ uv sync
 If `uv` is not available, install Flask in your active Python environment:
 
 ```powershell
-pip install flask
+pip install -r Backend\requirements.txt
 ```
+
+Make sure MongoDB is installed and running locally before starting the app.
 
 ## Run
 
@@ -79,7 +83,9 @@ vet@example.com / vetpass
 - Regional alert creation and lookup
 - Veterinary partner content submission
 - Staff moderation approval/rejection
+- Staff-maintained vet clinic directory records
+- Educational quizzes
 
 ## Notes
 
-This is an assignment prototype. Data is stored in memory for demonstration rather than in a production database. The Flask routes act as a simple web interface to the object-oriented backend classes.
+This is an assignment prototype. Data is persisted in a local MongoDB database through the `Backend/database.py` wrapper. Flask routes in `main.py` act as the AppRouting/boundary layer that connects the HTML templates to the object-oriented backend classes.

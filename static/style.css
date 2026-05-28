@@ -1,26 +1,47 @@
 /* ── Base ── */
+:root {
+    --pfa-bg: #f6f8fa;
+    --pfa-bg-soft: #eef3f6;
+    --pfa-surface: #ffffff;
+    --pfa-border: #e2e8f0;
+    --pfa-text: #0f172a;
+    --pfa-muted: #5b6475;
+    --pfa-primary: #1d4ed8;
+    --pfa-primary-dark: #1e40af;
+    --pfa-primary-soft: #eff6ff;
+    --pfa-info-bg: #eff6ff;
+    --pfa-info-border: #bfdbfe;
+    --pfa-info-text: #1e3a8a;
+}
+
 body {
-    background: #f4f6f8;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    color: #1a1a2e;
+    background: linear-gradient(180deg, var(--pfa-bg) 0%, var(--pfa-bg-soft) 100%);
+    font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    color: var(--pfa-text);
 }
 
 /* ── Navbar ── */
 .navbar {
-    background: #ffffff !important;
-    border-bottom: 2px solid #e0e7ef !important;
+    background: var(--pfa-surface) !important;
+    border-bottom: 2px solid var(--pfa-border) !important;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
 .navbar-brand {
     font-weight: 700;
     font-size: 1.15rem;
-    color: #2563eb !important;
+    color: var(--pfa-primary) !important;
     letter-spacing: -0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
-.navbar-brand::before {
-    content: "🐾 ";
+.brand-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.1;
+    color: var(--pfa-primary);
 }
 
 .navbar-nav .nav-link {
@@ -28,14 +49,14 @@ body {
     padding-right: 0.6rem;
     font-size: 0.9rem;
     font-weight: 500;
-    color: #374151 !important;
+    color: #334155 !important;
     border-radius: 6px;
-    transition: background 0.15s;
+    transition: background 0.15s, color 0.15s;
 }
 
 .navbar-nav .nav-link:hover {
-    background: #eff6ff;
-    color: #2563eb !important;
+    background: var(--pfa-primary-soft);
+    color: var(--pfa-primary) !important;
 }
 
 .navbar-nav .nav-link.text-danger {
@@ -50,22 +71,23 @@ body {
 h1.h3 {
     font-weight: 700;
     font-size: 1.5rem;
-    color: #111827;
+    color: var(--pfa-text);
     margin-bottom: 0.2rem;
 }
 
 .text-muted {
     font-size: 0.88rem;
+    color: var(--pfa-muted) !important;
     margin-bottom: 1.25rem !important;
 }
 
 /* ── Cards ── */
 .card {
     max-width: 960px;
-    border: 1px solid #e0e7ef;
+    border: 1px solid var(--pfa-border);
     border-radius: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    background: #ffffff;
+    background: var(--pfa-surface);
 }
 
 .card-body {
@@ -76,17 +98,17 @@ h1.h3 {
 .dashboard-card {
     display: block;
     text-decoration: none;
-    border: 1px solid #e0e7ef;
+    border: 1px solid var(--pfa-border);
     border-radius: 10px;
-    background: #fff;
+    background: var(--pfa-surface);
     padding: 1.4rem;
     transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
     height: 100%;
 }
 
 .dashboard-card:hover {
-    border-color: #2563eb;
-    box-shadow: 0 4px 12px rgba(37,99,235,0.12);
+    border-color: var(--pfa-primary);
+    box-shadow: 0 4px 12px rgba(15,118,110,0.12);
     transform: translateY(-2px);
     text-decoration: none;
 }
@@ -94,20 +116,40 @@ h1.h3 {
 .dashboard-card h2 {
     font-size: 1rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--pfa-text);
     margin-bottom: 0.35rem;
 }
 
 .dashboard-card p {
     font-size: 0.85rem;
-    color: #6b7280;
+    color: var(--pfa-muted);
     margin-bottom: 0;
 }
 
 .dashboard-card .card-icon {
-    font-size: 1.6rem;
     margin-bottom: 0.6rem;
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    color: var(--pfa-primary);
+}
+
+.card-icon svg {
+    width: 26px;
+    height: 26px;
+    stroke-width: 2.1;
+}
+
+.inline-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.2rem;
+    color: #64748b;
+}
+
+.inline-icon svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.1;
 }
 
 /* Role badge */
@@ -120,9 +162,9 @@ h1.h3 {
     letter-spacing: 0.3px;
 }
 
-.role-badge.owner   { background: #dbeafe; color: #1d4ed8; }
-.role-badge.staff   { background: #d1fae5; color: #065f46; }
-.role-badge.vet     { background: #ede9fe; color: #5b21b6; }
+.role-badge.owner   { background: #dbeafe; color: var(--pfa-primary); }
+.role-badge.staff   { background: #dcfce7; color: #166534; }
+.role-badge.vet     { background: #fef9c3; color: #854d0e; }
 
 /* ── Forms ── */
 .form-label {
@@ -140,8 +182,8 @@ h1.h3 {
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    border-color: var(--pfa-primary);
+    box-shadow: 0 0 0 3px rgba(15,118,110,0.12);
 }
 
 /* Inline validation */
@@ -174,13 +216,24 @@ h1.h3 {
 }
 
 .btn-primary {
-    background: #2563eb;
-    border-color: #2563eb;
+    background: var(--pfa-primary);
+    border-color: var(--pfa-primary);
 }
 
 .btn-primary:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
+    background: var(--pfa-primary-dark);
+    border-color: var(--pfa-primary-dark);
+}
+
+.btn-outline-primary {
+    color: var(--pfa-primary);
+    border-color: var(--pfa-primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--pfa-primary-soft);
+    color: var(--pfa-primary-dark);
+    border-color: var(--pfa-primary-dark);
 }
 
 /* ── Alerts / banners ── */
@@ -202,9 +255,9 @@ h1.h3 {
 }
 
 .alert-info {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-    color: #1e40af;
+    background: var(--pfa-info-bg);
+    border-color: var(--pfa-info-border);
+    color: var(--pfa-info-text);
 }
 
 .alert-secondary {
@@ -220,7 +273,7 @@ h1.h3 {
 
 /* ── Result card ── */
 .result-card {
-    border-left: 4px solid #2563eb;
+    border-left: 4px solid var(--pfa-primary);
 }
 
 .result-card.high   { border-left-color: #dc2626; }
@@ -239,9 +292,82 @@ pre {
 .section-title {
     font-size: 1rem;
     font-weight: 600;
-    color: #111827;
+    color: var(--pfa-text);
     margin-bottom: 0.75rem;
     margin-top: 1.5rem;
+}
+
+.page-actions {
+    background: #f8fafc;
+    border: 1px solid var(--pfa-border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+
+.pet-card {
+    border: 1px solid var(--pfa-border);
+    border-radius: 8px;
+    background: var(--pfa-surface);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.pet-card summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.65rem 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    transition: background 0.15s ease;
+}
+
+.pet-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.pet-card summary:hover {
+    background: #f8fafc;
+}
+
+.pet-card[open] summary {
+    border-bottom: 1px solid var(--pfa-border);
+    background: #f8fafc;
+}
+
+.pet-card-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+}
+
+.pet-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--pfa-text);
+}
+
+.pet-card-meta {
+    display: inline-flex;
+    gap: 0.45rem;
+    font-size: 0.78rem;
+    color: var(--pfa-muted);
+    white-space: nowrap;
+}
+
+.pet-card-body {
+    padding: 0.75rem 0.85rem 0.85rem;
+    font-size: 0.88rem;
+}
+
+.pet-card-body .h5 {
+    font-size: 1rem;
+}
+
+.pet-form-card {
+    max-width: 100%;
 }
 
 .moderation-meta {
@@ -275,4 +401,23 @@ pre {
 
 .back-btn-wrap {
     margin-bottom: 1rem;
+}
+
+main {
+    animation: pageIn 0.25s ease-out;
+}
+
+@keyframes pageIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    main {
+        animation: none;
+    }
+
+    .dashboard-card {
+        transition: none;
+    }
 }
