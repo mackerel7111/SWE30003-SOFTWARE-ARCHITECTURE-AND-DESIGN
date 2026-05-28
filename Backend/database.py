@@ -1157,6 +1157,89 @@ class Database:
             },
         ]
 
+        smallPetSpeciesLabels = {
+            "rabbit": "Rabbits",
+            "hamster": "Hamsters",
+            "guinea pig": "Guinea Pigs",
+            "bird": "Birds",
+            "tortoise": "Tortoises",
+        }
+        smallPetGuideTemplates = {
+            "breathing": {
+                "title": "Breathing Difficulty",
+                "urgencyLevel": URGENCY_EMERGENCY,
+                "keywords": ["breathing", "breathing difficulty", "wheezing", "shortness of breath"],
+                "steps": [
+                    "Keep the pet calm and limit handling.",
+                    "Move the pet to a quiet, well-ventilated area.",
+                    "Do not force food, water, or medication.",
+                    "Contact an emergency veterinarian immediately.",
+                ],
+                "warningNotes": "Breathing difficulty in small pets can become serious very quickly.",
+            },
+            "bleeding": {
+                "title": "Bleeding and Wound Care",
+                "urgencyLevel": URGENCY_URGENT,
+                "keywords": ["bleeding", "wound", "cut", "scratch", "injury"],
+                "steps": [
+                    "Approach gently and avoid sudden handling.",
+                    "Apply light pressure with clean gauze or cloth if safe.",
+                    "Keep the pet warm, quiet, and contained.",
+                    "Contact a veterinarian if bleeding continues or the wound is deep.",
+                ],
+                "warningNotes": "Small pets can lose blood quickly. Do not use human antiseptics unless advised by a vet.",
+            },
+            "vomiting": {
+                "title": "Vomiting or Digestive Upset",
+                "urgencyLevel": URGENCY_URGENT,
+                "keywords": ["vomiting", "digestive", "diarrhea", "not eating", "lethargy"],
+                "steps": [
+                    "Remove unsafe food and observe the pet closely.",
+                    "Keep clean water available if the species can drink safely.",
+                    "Check for repeated symptoms, weakness, or bloating.",
+                    "Contact a veterinarian if symptoms continue or the pet becomes weak.",
+                ],
+                "warningNotes": "Digestive problems in small pets can worsen quickly and may require prompt veterinary care.",
+            },
+            "limping": {
+                "title": "Limping or Movement Difficulty",
+                "urgencyLevel": URGENCY_NON_URGENT,
+                "keywords": ["limping", "lameness", "leg pain", "movement", "injury"],
+                "steps": [
+                    "Limit movement and keep the pet in a safe enclosure.",
+                    "Check gently for visible swelling, cuts, or trapped objects.",
+                    "Avoid pulling, twisting, or forcing the limb.",
+                    "Arrange a vet check if limping continues or the pet cannot move normally.",
+                ],
+                "warningNotes": "Do not give pain medication unless prescribed by a veterinarian.",
+            },
+            "itching": {
+                "title": "Itching and Skin Irritation",
+                "urgencyLevel": URGENCY_NON_URGENT,
+                "keywords": ["itching", "skin irritation", "rash", "scratching", "skin"],
+                "steps": [
+                    "Check the skin for redness, swelling, discharge, or parasites.",
+                    "Keep the enclosure clean and remove possible irritants.",
+                    "Prevent excessive scratching where possible.",
+                    "Schedule a vet check if irritation spreads or does not improve.",
+                ],
+                "warningNotes": "Do not apply human creams, sprays, or powders unless advised by a veterinarian.",
+            },
+        }
+
+        for species, speciesLabel in smallPetSpeciesLabels.items():
+            for template in smallPetGuideTemplates.values():
+                guides.append({
+                    "title":        f"{template['title']} in {speciesLabel}",
+                    "species":      species,
+                    "urgencyLevel": template["urgencyLevel"],
+                    "keywords":     template["keywords"],
+                    "steps":        template["steps"],
+                    "warningNotes": template["warningNotes"],
+                    "approvedBy":   staff_id,
+                    "isApproved":   True,
+                })
+
         for guide in guides:
             if guide["title"] in obsoleteGuideTitles:
                 continue
@@ -1342,6 +1425,7 @@ class Database:
             self.insertQuiz({
                 "title":           "Pet Safety and Prevention",
                 "topic":           "prevention",
+                "species":         "dog",
                 "difficultyLevel": "beginner",
                 "createdBy":       staff_id,
                 "questions": [
@@ -1390,6 +1474,181 @@ class Database:
                 ],
             })
             logger.info("Seeded prevention educational quiz.")
+
+        quizSpeciesLabels = {
+            "dog": "Dog",
+            "cat": "Cat",
+            "rabbit": "Rabbit",
+            "hamster": "Hamster",
+            "guinea pig": "Guinea Pig",
+            "bird": "Bird",
+            "tortoise": "Tortoise",
+        }
+        quizTopicTemplates = {
+            "breathing": {
+                "label": "Breathing Difficulty",
+                "questions": [
+                    {
+                        "text": "What should you do first if your {pet} has breathing difficulty?",
+                        "options": [
+                            "A. Keep the pet calm and limit handling",
+                            "B. Force the pet to drink water",
+                            "C. Give human cough medicine",
+                            "D. Wait until tomorrow",
+                        ],
+                        "answer": "A",
+                        "feedback": "Breathing problems can worsen quickly. Keeping the pet calm and seeking veterinary help is safest.",
+                    },
+                    {
+                        "text": "Which sign makes breathing difficulty more serious?",
+                        "options": [
+                            "A. Normal eating",
+                            "B. Quiet resting",
+                            "C. Open-mouth breathing or severe weakness",
+                            "D. Sleeping after play",
+                        ],
+                        "answer": "C",
+                        "feedback": "Open-mouth breathing or weakness can indicate an emergency and should not be ignored.",
+                    },
+                ],
+            },
+            "bleeding": {
+                "label": "Bleeding / Wound Care",
+                "questions": [
+                    {
+                        "text": "What is a safe first step for minor bleeding in a {pet}?",
+                        "options": [
+                            "A. Apply gentle pressure with clean gauze",
+                            "B. Rub the wound strongly",
+                            "C. Apply human antiseptic immediately",
+                            "D. Ignore it if the pet is moving",
+                        ],
+                        "answer": "A",
+                        "feedback": "Gentle pressure helps slow bleeding while reducing further injury.",
+                    },
+                    {
+                        "text": "When should a wound be checked by a veterinarian?",
+                        "options": [
+                            "A. Only after one month",
+                            "B. If bleeding continues or the wound is deep",
+                            "C. Never, wounds heal alone",
+                            "D. Only if the pet refuses treats",
+                        ],
+                        "answer": "B",
+                        "feedback": "Deep or continuing bleeding can become serious, especially for small pets.",
+                    },
+                ],
+            },
+            "digestive": {
+                "label": "Vomiting / Digestive Issues",
+                "questions": [
+                    {
+                        "text": "What should you do if your {pet} shows repeated digestive distress?",
+                        "options": [
+                            "A. Monitor closely and contact a veterinarian",
+                            "B. Give spicy food",
+                            "C. Force-feed a large meal",
+                            "D. Give human stomach medicine",
+                        ],
+                        "answer": "A",
+                        "feedback": "Repeated digestive symptoms can lead to dehydration or indicate a serious condition.",
+                    },
+                    {
+                        "text": "Which is a warning sign during digestive illness?",
+                        "options": [
+                            "A. Normal behaviour",
+                            "B. Bright alertness",
+                            "C. Weakness, bloating, blood, or not eating",
+                            "D. Drinking normally",
+                        ],
+                        "answer": "C",
+                        "feedback": "Weakness, bloating, blood, or appetite loss may need prompt veterinary care.",
+                    },
+                ],
+            },
+            "injury": {
+                "label": "Limping / Injury",
+                "questions": [
+                    {
+                        "text": "What should you do if your {pet} starts limping?",
+                        "options": [
+                            "A. Limit movement and check gently for injury",
+                            "B. Force the pet to exercise",
+                            "C. Pull the injured limb",
+                            "D. Give human painkillers",
+                        ],
+                        "answer": "A",
+                        "feedback": "Limiting movement prevents further injury while you assess the situation.",
+                    },
+                    {
+                        "text": "Why should you avoid human painkillers?",
+                        "options": [
+                            "A. They are always tasty",
+                            "B. They may be toxic to pets",
+                            "C. They work for every species",
+                            "D. They remove the need for a vet",
+                        ],
+                        "answer": "B",
+                        "feedback": "Many human medicines are dangerous for pets and should only be used with veterinary advice.",
+                    },
+                ],
+            },
+            "skin": {
+                "label": "Skin Irritation",
+                "questions": [
+                    {
+                        "text": "What should you check for when your {pet} is scratching often?",
+                        "options": [
+                            "A. Redness, swelling, wounds, or parasites",
+                            "B. Shoe size",
+                            "C. Favourite toy colour",
+                            "D. Internet popularity",
+                        ],
+                        "answer": "A",
+                        "feedback": "Visible skin changes or parasites can help identify the cause of irritation.",
+                    },
+                    {
+                        "text": "What should you avoid applying without veterinary advice?",
+                        "options": [
+                            "A. Clean water if appropriate",
+                            "B. Human creams, sprays, or powders",
+                            "C. A clean towel",
+                            "D. A clean enclosure",
+                        ],
+                        "answer": "B",
+                        "feedback": "Human skin products can irritate or poison pets depending on the species.",
+                    },
+                ],
+            },
+        }
+
+        for species, speciesLabel in quizSpeciesLabels.items():
+            for topic, template in quizTopicTemplates.items():
+                title = f"{speciesLabel} {template['label']} Quiz"
+                if self._quizzes.find_one({"title": title}):
+                    continue
+
+                questions = []
+                for index, question in enumerate(template["questions"], start=1):
+                    questions.append({
+                        "questionId": f"{species.replace(' ', '_')}_{topic}_{index}",
+                        "questionText": question["text"].format(pet=speciesLabel.lower()),
+                        "options": question["options"],
+                        "correctAnswer": question["answer"],
+                        "feedback": {
+                            "explanationText": question["feedback"],
+                        },
+                    })
+
+                self.insertQuiz({
+                    "title":           title,
+                    "topic":           topic,
+                    "species":         species,
+                    "difficultyLevel": "beginner",
+                    "createdBy":       staff_id,
+                    "questions":       questions,
+                })
+                logger.info("Seeded quiz: %s", title)
 
         logger.info("seed_data() complete.")
 

@@ -4,16 +4,44 @@
 
 {% block content %}
 <h1 class="h3">Educational Quiz</h1>
-<p class="text-muted">Choose a quiz and answer the multiple-choice questions. Feedback is shown after submission.</p>
+<p class="text-muted">Choose a pet species and first-aid topic, then answer the multiple-choice questions.</p>
 
 {% if error %}
     <div class="alert alert-danger">{{ error }}</div>
 {% endif %}
 
-{% if quizzes %}
+<form method="get" class="card mb-4" novalidate>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Pet Species</label>
+                <select class="form-select" name="species" required>
+                    {% for species in supported_species %}
+                        <option value="{{ species }}" {% if species == selected_species %}selected{% endif %}>{{ species | title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Quiz Topic</label>
+                <select class="form-select" name="topic" required>
+                    {% for topic_value, topic_label in quiz_topics %}
+                        <option value="{{ topic_value }}" {% if topic_value == selected_topic %}selected{% endif %}>{{ topic_label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button class="btn btn-primary w-100" type="submit">Load Quiz</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% if should_show_available_quizzes and quizzes %}
     <form method="get" class="card mb-4" novalidate>
         <div class="card-body">
-            <label class="form-label">Quiz Topic</label>
+            <input type="hidden" name="species" value="{{ selected_species }}">
+            <input type="hidden" name="topic" value="{{ selected_topic }}">
+            <label class="form-label">Available Quiz</label>
             <div class="d-flex gap-2">
                 <select class="form-select" name="quiz_id" required>
                     {% for quiz in quizzes %}
@@ -22,31 +50,44 @@
                         </option>
                     {% endfor %}
                 </select>
-                <button class="btn btn-primary" type="submit">Load Quiz</button>
+                <button class="btn btn-primary" type="submit">Start Quiz</button>
             </div>
         </div>
     </form>
 
     {% if selected_quiz %}
-        <form method="post" class="card mb-4" novalidate>
+        <form method="post" class="card mb-4" id="quiz_form" novalidate>
             <div class="card-body">
+                <input type="hidden" name="species" value="{{ selected_species }}">
+                <input type="hidden" name="topic" value="{{ selected_topic }}">
                 <input type="hidden" name="quiz_id" value="{{ selected_quiz.quiz_id }}">
                 <p class="section-title" style="margin-top:0;">{{ selected_quiz.title }}</p>
+                <p class="text-muted mb-3" id="quiz_progress">Question 1 of {{ selected_quiz.questions | length }}</p>
 
                 {% for question in selected_quiz.questions %}
-                    <div class="mb-4">
+                    <div class="quiz-step mb-4" data-step="{{ loop.index0 }}" data-question-label="Question {{ loop.index }}">
                         <p class="mb-2"><strong>{{ loop.index }}. {{ question.questionText }}</strong></p>
                         {% for option in question.options %}
                             {% set option_value = option.split('.')[0].strip() %}
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="{{ question.questionId }}" value="{{ option_value }}" required>
+                                <input class="form-check-input quiz-answer" type="radio" name="{{ question.questionId }}" value="{{ option_value }}" data-option-text="{{ option }}" required>
                                 <label class="form-check-label">{{ option }}</label>
                             </div>
                         {% endfor %}
                     </div>
                 {% endfor %}
 
-                <button class="btn btn-primary" type="submit">Submit Answers</button>
+                <div class="quiz-step mb-4" id="quiz_summary" data-step="{{ selected_quiz.questions | length }}">
+                    <h3 class="h5 mb-3">Review Your Answers</h3>
+                    <div id="quiz_summary_list"></div>
+                    <p class="text-muted mb-0" style="font-size:0.85rem;">Use Previous to change an answer before submitting.</p>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary" id="prev_question" type="button">Previous</button>
+                    <button class="btn btn-primary" id="next_question" type="button">Next</button>
+                    <button class="btn btn-primary" id="submit_quiz" type="submit">Submit Answers</button>
+                </div>
             </div>
         </form>
     {% endif %}
@@ -68,7 +109,95 @@
             </div>
         </div>
     {% endif %}
-{% else %}
-    <div class="alert alert-info">No quizzes are available yet.</div>
+{% elif should_show_available_quizzes %}
+    <div class="alert alert-info">No quiz is available for the selected species and topic yet.</div>
+{% endif %}
+
+{% if selected_quiz %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('quiz_form');
+    const steps = Array.from(document.querySelectorAll('.quiz-step'));
+    const progress = document.getElementById('quiz_progress');
+    const previousButton = document.getElementById('prev_question');
+    const nextButton = document.getElementById('next_question');
+    const submitButton = document.getElementById('submit_quiz');
+    const summaryList = document.getElementById('quiz_summary_list');
+    const questionCount = {{ selected_quiz.questions | length }};
+    let currentStep = 0;
+
+    function showStep(stepIndex) {
+        currentStep = stepIndex;
+
+        steps.forEach(function (step) {
+            step.style.display = Number(step.dataset.step) === currentStep ? '' : 'none';
+        });
+
+        previousButton.style.display = currentStep === 0 ? 'none' : '';
+        nextButton.style.display = currentStep >= questionCount ? 'none' : '';
+        submitButton.style.display = currentStep === questionCount ? '' : 'none';
+        progress.textContent = currentStep < questionCount
+            ? `Question ${currentStep + 1} of ${questionCount}`
+            : 'Final review';
+
+        if (currentStep === questionCount) {
+            buildSummary();
+        }
+    }
+
+    function currentQuestionAnswered() {
+        const currentQuestion = steps.find(function (step) {
+            return Number(step.dataset.step) === currentStep;
+        });
+        if (!currentQuestion || currentStep >= questionCount) {
+            return true;
+        }
+
+        const checkedAnswer = currentQuestion.querySelector('input[type="radio"]:checked');
+        if (checkedAnswer) {
+            return true;
+        }
+
+        currentQuestion.querySelector('.quiz-answer').reportValidity();
+        return false;
+    }
+
+    function buildSummary() {
+        const questionSteps = steps.filter(function (step) {
+            return Number(step.dataset.step) < questionCount;
+        });
+
+        summaryList.innerHTML = '';
+        questionSteps.forEach(function (step) {
+            const selected = step.querySelector('input[type="radio"]:checked');
+            const item = document.createElement('div');
+            item.className = 'alert alert-secondary py-2 mb-2';
+            item.innerHTML = `<strong>${step.dataset.questionLabel}:</strong> ${selected ? selected.dataset.optionText : 'No answer selected'}`;
+            summaryList.appendChild(item);
+        });
+    }
+
+    nextButton.addEventListener('click', function () {
+        if (currentQuestionAnswered()) {
+            showStep(currentStep + 1);
+        }
+    });
+
+    previousButton.addEventListener('click', function () {
+        showStep(Math.max(0, currentStep - 1));
+    });
+
+    form.addEventListener('submit', function (event) {
+        if (currentStep !== questionCount) {
+            event.preventDefault();
+            if (currentQuestionAnswered()) {
+                showStep(questionCount);
+            }
+        }
+    });
+
+    showStep(0);
+});
+</script>
 {% endif %}
 {% endblock %}

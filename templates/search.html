@@ -17,9 +17,9 @@
                     <option value="clinic" {% if search_type == "clinic" %}selected{% endif %}>Vet Clinic by Region</option>
                 </select>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6" id="keyword_group">
                 <label class="form-label" id="keyword_label">
-                    {% if search_type == "clinic" %}Region{% elif search_type == "video" %}Species{% else %}Symptom Keyword{% endif %}
+                    {% if search_type == "clinic" %}Region{% else %}Symptom Keyword{% endif %}
                 </label>
                 <input
                     class="form-control"
@@ -27,16 +27,21 @@
                     name="keyword"
                     value="{{ keyword }}"
                     data-default-region="{{ saved_region }}"
-                    placeholder="{% if search_type == 'clinic' %}e.g. Kuching{% elif search_type == 'video' %}e.g. dog{% else %}e.g. vomiting{% endif %}"
+                    placeholder="{% if search_type == 'clinic' %}e.g. Kuching{% else %}e.g. vomiting{% endif %}"
                     required
                 >
+            </div>
+            <div class="col-md-6" id="species_group" style="display:none;">
+                <label class="form-label">Species</label>
+                <select class="form-select" name="species" id="species">
+                    {% for species in supported_species %}
+                        <option value="{{ species }}" {% if species == selected_species %}selected{% endif %}>{{ species | title }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
                 <button class="btn btn-primary w-100" type="submit">Search</button>
             </div>
-        </div>
-        <div class="mt-2">
-            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('alerts') }}">Go to Alerts</a>
         </div>
     </div>
 </form>
@@ -104,25 +109,40 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchType = document.getElementById('search_type');
     const keyword = document.getElementById('keyword');
     const keywordLabel = document.getElementById('keyword_label');
+    const keywordGroup = document.getElementById('keyword_group');
+    const speciesGroup = document.getElementById('species_group');
 
-    function updateSearchTermHint() {
+    function updateSearchTermHint(shouldReset) {
+        if (shouldReset) {
+            keyword.value = '';
+        }
+
         if (searchType.value === 'clinic') {
+            keywordGroup.style.display = '';
+            speciesGroup.style.display = 'none';
+            keyword.required = true;
             keywordLabel.textContent = 'Region';
             keyword.placeholder = keyword.dataset.defaultRegion || 'e.g. Kuching';
-            if (!keyword.value && keyword.dataset.defaultRegion) {
+            if (shouldReset && keyword.dataset.defaultRegion) {
                 keyword.value = keyword.dataset.defaultRegion;
             }
         } else if (searchType.value === 'video') {
-            keywordLabel.textContent = 'Species';
-            keyword.placeholder = 'e.g. dog';
+            keywordGroup.style.display = 'none';
+            speciesGroup.style.display = '';
+            keyword.required = false;
         } else {
+            keywordGroup.style.display = '';
+            speciesGroup.style.display = 'none';
+            keyword.required = true;
             keywordLabel.textContent = 'Symptom Keyword';
             keyword.placeholder = 'e.g. vomiting';
         }
     }
 
-    searchType.addEventListener('change', updateSearchTermHint);
-    updateSearchTermHint();
+    searchType.addEventListener('change', function () {
+        updateSearchTermHint(true);
+    });
+    updateSearchTermHint(false);
 });
 </script>
 {% endblock %}

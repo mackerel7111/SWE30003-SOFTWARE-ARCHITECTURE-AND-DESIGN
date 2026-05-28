@@ -4,72 +4,87 @@
 
 {% block content %}
 <h1 class="h3">Regional Alerts</h1>
-<p class="text-muted">Association Staff can create and broadcast alerts. Pet Owners can fetch active alerts by region.</p>
+<p class="text-muted">View local alerts or create new regional health alerts.</p>
 
 {% if current_role == "PetOwner" and saved_region %}
-    <div class="alert alert-info">Showing alerts for your registered region: <strong>{{ saved_region }}</strong>. You can type another region below.</div>
+    <div class="alert alert-info">Your registered region is <strong>{{ saved_region }}</strong>. You can type another region when fetching alerts.</div>
 {% endif %}
 
 {% if message %}
     <div class="alert alert-success">{{ message }}</div>
 {% endif %}
 
-<div class="row g-4">
-
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <a class="dashboard-card" href="{{ url_for('alerts', mode='fetch') }}">
+            <span class="card-icon">!</span>
+            <h2>Fetch Alerts</h2>
+            <p>View active alerts by region.</p>
+        </a>
+    </div>
     {% if current_role == "AssociationStaff" %}
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-body">
-                <h2 class="h5 mb-3">Create Alert</h2>
-                <form method="post" novalidate>
-                    <input type="hidden" name="action" value="create">
-                    <div class="mb-2">
-                        <label class="form-label">Title</label>
-                        <input class="form-control" name="title" placeholder="e.g. Parvovirus Outbreak" required>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Message</label>
-                        <textarea class="form-control" name="message" rows="3" placeholder="Describe the health alert..." required></textarea>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Target Region</label>
-                        <input class="form-control" name="target_region" placeholder="e.g. Kuching" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Urgency Level</label>
-                        <select class="form-select" name="urgency_level">
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Create Alert</button>
-                </form>
-            </div>
+        <div class="col-md-4">
+            <a class="dashboard-card" href="{{ url_for('alerts', mode='create') }}">
+                <span class="card-icon">+</span>
+                <h2>Create Alert</h2>
+                <p>Broadcast a new regional health warning.</p>
+            </a>
         </div>
-    </div>
     {% endif %}
+</div>
 
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-body">
-                <h2 class="h5 mb-3">Fetch Alerts by Region</h2>
-                <form method="post" novalidate>
-                    <input type="hidden" name="action" value="fetch">
-                    <div class="mb-3">
-                        <label class="form-label">Region</label>
-                        <input class="form-control" name="region" value="{{ region }}" placeholder="e.g. Kuching" required>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Fetch Alerts</button>
-                    {% if current_role == "AssociationStaff" %}
-                        <a class="btn btn-outline-secondary" href="{{ url_for('moderation') }}">Go to Moderation</a>
-                    {% endif %}
-                </form>
+{% if mode == "create" and current_role == "AssociationStaff" %}
+    <form method="post" class="card mb-4" novalidate>
+        <div class="card-body">
+            <input type="hidden" name="action" value="create">
+            <p class="section-title" style="margin-top:0;">Create Alert</p>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Title</label>
+                    <input class="form-control" name="title" placeholder="e.g. Parvovirus Outbreak" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Target Region</label>
+                    <input class="form-control" name="target_region" placeholder="e.g. Kuching" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Urgency Level</label>
+                    <select class="form-select" name="urgency_level">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Message</label>
+                    <textarea class="form-control" name="message" rows="3" placeholder="Describe the health alert..." required></textarea>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">Create Alert</button>
+                <a class="btn btn-outline-secondary" href="{{ url_for('alerts') }}">Cancel</a>
             </div>
         </div>
-    </div>
+    </form>
+{% endif %}
 
-</div>
+{% if mode == "fetch" %}
+    <form method="post" class="card mb-4" novalidate>
+        <div class="card-body">
+            <input type="hidden" name="action" value="fetch">
+            <p class="section-title" style="margin-top:0;">Fetch Alerts by Region</p>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Region</label>
+                    <input class="form-control" name="region" value="{{ region }}" placeholder="e.g. Kuching" required>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" type="submit">Fetch Alerts</button>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endif %}
 
 {% if alerts is not none %}
     <p class="section-title">Active Alerts {% if region %}for <em>{{ region }}</em>{% endif %}</p>

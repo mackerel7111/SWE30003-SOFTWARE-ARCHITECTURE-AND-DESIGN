@@ -38,9 +38,19 @@ VALID_ROLES            = {ROLE_PET_OWNER, ROLE_ASSOCIATION_STAFF, ROLE_VET_PARTN
 SPECIES_DOG     = "dog"
 SPECIES_CAT     = "cat"
 SPECIES_RABBIT  = "rabbit"
+SPECIES_HAMSTER = "hamster"
+SPECIES_GUINEA_PIG = "guinea pig"
 SPECIES_BIRD    = "bird"
-SPECIES_OTHER   = "other"
-VALID_SPECIES   = {SPECIES_DOG, SPECIES_CAT, SPECIES_RABBIT, SPECIES_BIRD, SPECIES_OTHER}
+SPECIES_TORTOISE = "tortoise"
+VALID_SPECIES   = {
+    SPECIES_DOG,
+    SPECIES_CAT,
+    SPECIES_RABBIT,
+    SPECIES_HAMSTER,
+    SPECIES_GUINEA_PIG,
+    SPECIES_BIRD,
+    SPECIES_TORTOISE,
+}
 
 URGENCY_EMERGENCY  = "EMERGENCY"
 URGENCY_URGENT     = "URGENT"
@@ -617,7 +627,7 @@ class PetProfile:
         return cls(
             ownerId        = data.get("ownerId",        ""),
             name           = data.get("name",           ""),
-            species        = data.get("species",        SPECIES_OTHER),
+            species        = data.get("species",        SPECIES_DOG),
             breed          = data.get("breed",          ""),
             age            = data.get("age",            0),
             weightKg       = data.get("weightKg",       0.0),
@@ -842,7 +852,7 @@ class FirstAidGuide:
         """
         return cls(
             title        = data.get("title",        ""),
-            species      = data.get("species",      SPECIES_OTHER),
+            species      = data.get("species",      SPECIES_DOG),
             urgencyLevel = data.get("urgencyLevel", URGENCY_NON_URGENT),
             steps        = data.get("steps",        [""]),
             keywords     = data.get("keywords",     []),
@@ -972,7 +982,7 @@ class InstructionalVideo:
         """
         return cls(
             title           = data.get("title",           ""),
-            species         = data.get("species",         SPECIES_OTHER),
+            species         = data.get("species",         SPECIES_DOG),
             url             = data.get("url",             ""),
             durationSeconds = data.get("durationSeconds", 0),
             description     = data.get("description",     ""),
@@ -1440,6 +1450,7 @@ class EducationalQuiz:
     quizId : str
     title : str
     topic : str
+    species : str
     difficultyLevel : str
         One of ``DIFFICULTY_*`` constants.
     questions : list[QuizQuestion]
@@ -1452,6 +1463,7 @@ class EducationalQuiz:
         title:           str,
         topic:           str,
         questions:       list[QuizQuestion],
+        species:         str              = SPECIES_DOG,
         difficultyLevel: str              = DIFFICULTY_BEGINNER,
         createdBy:       str              = "",
         quizId:          str              = "",
@@ -1476,6 +1488,8 @@ class EducationalQuiz:
 
         if not questions:
             raise ValueError("An educational quiz must have at least one question.")
+        if species.lower() not in VALID_SPECIES:
+            raise ValueError(f"Invalid species '{species}'. Must be one of {VALID_SPECIES}.")
         if difficultyLevel not in VALID_DIFFICULTIES:
             raise ValueError(
                 f"Invalid difficultyLevel '{difficultyLevel}'. "
@@ -1485,6 +1499,7 @@ class EducationalQuiz:
         self.quizId          = quizId
         self.title           = title.strip()
         self.topic           = topic.strip().lower()
+        self.species         = species.strip().lower()
         self.questions       = questions
         self.difficultyLevel = difficultyLevel
         self.createdBy       = createdBy
@@ -1519,6 +1534,7 @@ class EducationalQuiz:
         return {
             "title":           self.title,
             "topic":           self.topic,
+            "species":         self.species,
             "difficultyLevel": self.difficultyLevel,
             "questions":       [q.toDict() for q in self.questions],
             "createdBy":       self.createdBy,
@@ -1545,6 +1561,7 @@ class EducationalQuiz:
         return cls(
             title           = data.get("title",           ""),
             topic           = data.get("topic",           ""),
+            species         = data.get("species",         SPECIES_DOG),
             questions       = questions if questions else [
                 QuizQuestion(
                     "Q000",
@@ -1563,5 +1580,6 @@ class EducationalQuiz:
     def __repr__(self) -> str:
         return (
             f"<EducationalQuiz title={self.title!r} "
-            f"questions={self.questionCount} difficulty={self.difficultyLevel!r}>"
+            f"species={self.species!r} questions={self.questionCount} "
+            f"difficulty={self.difficultyLevel!r}>"
         )

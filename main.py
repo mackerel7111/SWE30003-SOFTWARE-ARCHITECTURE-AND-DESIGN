@@ -63,6 +63,15 @@ DEMO_LOGIN_ALIASES = {
     ("vet@example.com", "vetpass"): ("dr.tan@vetclinic.com", "vet1_password"),
 }
 
+SUPPORTED_SPECIES = ["dog", "cat", "rabbit", "hamster", "guinea pig", "bird", "tortoise"]
+QUIZ_TOPICS = [
+    ("breathing", "Breathing Difficulty"),
+    ("bleeding", "Bleeding / Wound Care"),
+    ("digestive", "Vomiting / Digestive Issues"),
+    ("injury", "Limping / Injury"),
+    ("skin", "Skin Irritation"),
+]
+
 
 def get_current_user():
     user = session.get("user")
@@ -218,6 +227,8 @@ def pet_for_template(pet):
         breed=pet.breed,
         age=pet.age,
         weight_kg=pet.weightKg,
+        sex=pet.sex,
+        is_neutered=pet.isNeutered,
         medical_history=", ".join(pet.medicalHistory),
         emergency_notes=pet.emergencyNotes,
     )
@@ -228,6 +239,7 @@ def quiz_for_template(quiz):
         quiz_id=quiz.quizId,
         title=quiz.title,
         topic=quiz.topic,
+        species=quiz.species,
         difficulty_level=quiz.difficultyLevel,
         questions=quiz.questions,
         question_count=quiz.questionCount,
@@ -350,39 +362,64 @@ def pets():
     message = None
     error = None
     session_user = current_session_user()
+    form_mode = request.args.get("mode", "")
+    selected_pet = None
+    selected_pet_id = request.args.get("pet_id", "")
 
     if request.method == "POST":
         try:
+            action = request.form.get("action", "add")
             medical_history = [
                 note.strip()
                 for note in request.form.get("medical_history", "").splitlines()
                 if note.strip()
             ]
-            pet_profile = PetProfile(
-                ownerId=session_user["userId"],
-                name=form_text("name"),
-                species=form_text("species").lower(),
-                breed=form_text("breed"),
-                age=int(request.form.get("age", 0)),
-                weightKg=float(request.form.get("weight_kg", 0)),
-                sex=form_text("sex").lower(),
-                isNeutered=request.form.get("is_neutered") == "yes",
-                medicalHistory=medical_history,
-                emergencyNotes=form_text("emergency_notes"),
-            )
-            pet_id = database.insertPetProfile(pet_profile.toDict())
-            message = f"Pet profile {pet_id} saved."
+            pet_data = {
+                "name": form_text("name"),
+                "species": form_text("species").lower(),
+                "breed": form_text("breed"),
+                "age": int(request.form.get("age", 0)),
+                "weightKg": float(request.form.get("weight_kg", 0)),
+                "sex": form_text("sex").lower(),
+                "isNeutered": request.form.get("is_neutered") == "yes",
+                "medicalHistory": medical_history,
+                "emergencyNotes": form_text("emergency_notes"),
+            }
+
+            if action == "edit":
+                pet_id = form_text("pet_id")
+                existing_pet = database.findPetById(pet_id)
+                if not existing_pet or existing_pet.get("ownerId") != session_user["userId"]:
+                    raise ValueError("Please select a valid pet profile to edit.")
+
+                database.updatePetProfile(pet_id, pet_data)
+                message = "Pet profile updated."
+            else:
+                pet_profile = PetProfile(
+                    ownerId=session_user["userId"],
+                    **pet_data,
+                )
+                pet_id = database.insertPetProfile(pet_profile.toDict())
+                message = f"Pet profile {pet_id} saved."
         except ValueError as err:
             error = str(err)
+            form_mode = request.form.get("action", form_mode)
+            selected_pet_id = request.form.get("pet_id", selected_pet_id)
 
-    saved_pets = [
-        pet_for_template(PetProfile.fromDict(pet))
-        for pet in database.findPetsByOwner(session_user["userId"])
-    ]
+    pet_documents = database.findPetsByOwner(session_user["userId"])
+    saved_pets = [pet_for_template(PetProfile.fromDict(pet)) for pet in pet_documents]
+
+    if form_mode == "edit" and selected_pet_id:
+        pet_document = database.findPetById(selected_pet_id)
+        if pet_document and pet_document.get("ownerId") == session_user["userId"]:
+            selected_pet = pet_for_template(PetProfile.fromDict(pet_document))
 
     return render_template(
         "pets.html",
         pets=saved_pets,
+        form_mode=form_mode,
+        selected_pet=selected_pet,
+        selected_pet_id=selected_pet_id,
         message=message,
         error=error,
     )
@@ -463,14 +500,16 @@ def search():
     clinics = None
     videos = None
     saved_region = get_current_user_region()
+    selected_species = "dog"
 
     if request.method == "POST":
         keyword = form_text("keyword")
         search_type = request.form.get("search_type", "guide")
+        selected_species = request.form.get("species", selected_species)
 
         if search_type == "guide":
             matched_guides = []
-            for species in ["dog", "cat", "rabbit", "other"]:
+            for species in SUPPORTED_SPECIES:
                 matched_guides.extend(search_engine.queryFirstAidGuides(species, keyword))
 
             guides = [guide_for_template(guide) for guide in matched_guides]
@@ -483,9 +522,10 @@ def search():
             ]
 
         if search_type == "video":
+            keyword = selected_species
             videos = [
                 video_for_template(video)
-                for video in content_repository.getApprovedVideos(keyword.lower())
+                for video in content_repository.getApprovedVideos(selected_species.lower())
             ]
 
     return render_template(
@@ -496,6 +536,8 @@ def search():
         clinics=clinics,
         videos=videos,
         saved_region=saved_region,
+        selected_species=selected_species,
+        supported_species=SUPPORTED_SPECIES,
     )
 
 
@@ -505,14 +547,25 @@ def quiz():
     if guard:
         return guard
 
-    quizzes = [quiz_for_template(quiz) for quiz in content_repository.getAllQuizzes()]
+    selected_species = request.values.get("species", "dog")
+    selected_topic = request.values.get("topic", "breathing")
+    selected_quiz_id = request.form.get("quiz_id") or request.args.get("quiz_id")
+    should_show_available_quizzes = (
+        request.method == "POST"
+        or "species" in request.args
+        or "topic" in request.args
+        or bool(selected_quiz_id)
+    )
+    quizzes = []
+    if should_show_available_quizzes:
+        quizzes = [
+            quiz_for_template(quiz)
+            for quiz in content_repository.getAllQuizzes()
+            if quiz.species == selected_species and quiz.topic == selected_topic
+        ]
     selected_quiz = None
     result = None
     error = None
-
-    selected_quiz_id = request.form.get("quiz_id") or request.args.get("quiz_id")
-    if not selected_quiz_id and quizzes:
-        selected_quiz_id = quizzes[0].quiz_id
 
     if selected_quiz_id:
         quiz_obj = content_repository.getQuizDetails(selected_quiz_id)
@@ -535,6 +588,11 @@ def quiz():
         "quiz.html",
         quizzes=quizzes,
         selected_quiz=selected_quiz,
+        selected_species=selected_species,
+        selected_topic=selected_topic,
+        should_show_available_quizzes=should_show_available_quizzes,
+        supported_species=SUPPORTED_SPECIES,
+        quiz_topics=QUIZ_TOPICS,
         result=result,
         error=error,
     )
@@ -550,10 +608,12 @@ def alerts():
     region = saved_region if get_current_role() == "PetOwner" else ""
     active_alerts = None
     message = None
+    mode = request.args.get("mode", "")
 
     if request.method == "POST":
         action = request.form.get("action")
         session_user = current_session_user()
+        mode = "create" if action == "create" else "fetch"
 
         if action == "create":
             if session_user.get("role") != ROLE_ASSOCIATION_STAFF:
@@ -589,6 +649,7 @@ def alerts():
         "alerts.html",
         region=region,
         saved_region=saved_region,
+        mode=mode,
         alerts=active_alerts,
         message=message,
     )

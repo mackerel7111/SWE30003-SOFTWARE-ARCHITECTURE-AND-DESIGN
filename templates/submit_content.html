@@ -34,12 +34,23 @@
                     <option value="dog">Dog</option>
                     <option value="cat">Cat</option>
                     <option value="rabbit">Rabbit</option>
-                    <option value="other">Other</option>
+                    <option value="hamster">Hamster</option>
+                    <option value="guinea pig">Guinea Pig</option>
+                    <option value="bird">Bird</option>
+                    <option value="tortoise">Tortoise</option>
                 </select>
             </div>
             <div class="col-12">
-                <label class="form-label">First-Aid Steps <span class="text-muted fw-normal">(one per line)</span></label>
-                <textarea class="form-control" name="steps" rows="5" placeholder="Step 1: Remove the pet from the source of danger.&#10;Step 2: Call your vet immediately."></textarea>
+                <label class="form-label">First-Aid Steps</label>
+                <div id="step_inputs" class="d-grid gap-2">
+                    <div class="input-group step-input-row">
+                        <span class="input-group-text">1</span>
+                        <input class="form-control step-input" placeholder="Remove the pet from the source of danger.">
+                        <button class="btn btn-outline-danger remove-step" type="button">Remove</button>
+                    </div>
+                </div>
+                <button class="btn btn-outline-primary btn-sm mt-2" id="add_step" type="button">Add Step</button>
+                <textarea class="d-none" name="steps" id="steps"></textarea>
             </div>
             <div class="col-12">
                 <label class="form-label">Critical Warnings <span class="text-muted fw-normal">(one per line)</span></label>
@@ -58,7 +69,10 @@
                     <option value="dog">Dog</option>
                     <option value="cat">Cat</option>
                     <option value="rabbit">Rabbit</option>
-                    <option value="other">Other</option>
+                    <option value="hamster">Hamster</option>
+                    <option value="guinea pig">Guinea Pig</option>
+                    <option value="bird">Bird</option>
+                    <option value="tortoise">Tortoise</option>
                 </select>
             </div>
             <div class="col-md-8">
@@ -81,7 +95,6 @@
 
         <div class="d-flex gap-2 mt-4">
             <button class="btn btn-primary" type="submit">Submit for Review</button>
-            <a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
         </div>
     </div>
 </form>
@@ -91,6 +104,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const contentType = document.getElementById('content_type');
     const guideFields = document.getElementById('guide_fields');
     const videoFields = document.getElementById('video_fields');
+    const form = document.querySelector('form');
+    const stepInputs = document.getElementById('step_inputs');
+    const addStepButton = document.getElementById('add_step');
+    const hiddenSteps = document.getElementById('steps');
 
     function updateFormMode() {
         const isVideo = contentType.value === 'instructional_video';
@@ -100,6 +117,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
     contentType.addEventListener('change', updateFormMode);
     updateFormMode();
+
+    function renumberSteps() {
+        stepInputs.querySelectorAll('.step-input-row').forEach(function (row, index) {
+            row.querySelector('.input-group-text').textContent = index + 1;
+            row.querySelector('.remove-step').disabled = stepInputs.querySelectorAll('.step-input-row').length === 1;
+        });
+    }
+
+    function addStepInput() {
+        const row = document.createElement('div');
+        row.className = 'input-group step-input-row';
+        row.innerHTML = `
+            <span class="input-group-text"></span>
+            <input class="form-control step-input" placeholder="Enter the next first-aid step.">
+            <button class="btn btn-outline-danger remove-step" type="button">Remove</button>
+        `;
+        stepInputs.appendChild(row);
+        renumberSteps();
+        row.querySelector('.step-input').focus();
+    }
+
+    function syncStepsField() {
+        const steps = Array.from(stepInputs.querySelectorAll('.step-input'))
+            .map(function (input) {
+                return input.value.trim();
+            })
+            .filter(Boolean);
+
+        hiddenSteps.value = steps.join('\n');
+    }
+
+    addStepButton.addEventListener('click', addStepInput);
+
+    stepInputs.addEventListener('click', function (event) {
+        if (!event.target.classList.contains('remove-step')) {
+            return;
+        }
+
+        const rows = stepInputs.querySelectorAll('.step-input-row');
+        if (rows.length > 1) {
+            event.target.closest('.step-input-row').remove();
+            renumberSteps();
+        }
+    });
+
+    form.addEventListener('submit', syncStepsField);
+    renumberSteps();
 });
 </script>
 {% endblock %}

@@ -14,71 +14,14 @@
     <div class="alert alert-danger">{{ error }}</div>
 {% endif %}
 
-<form method="post" class="card mb-4" novalidate>
-    <div class="card-body">
-        <p class="section-title" style="margin-top:0;">Add Pet Profile</p>
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label">Pet Name</label>
-                <input class="form-control" name="name" placeholder="e.g. Buddy" required>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Species</label>
-                <select class="form-select" name="species" required>
-                    <option value="" disabled selected>Select species</option>
-                    <option value="dog">Dog</option>
-                    <option value="cat">Cat</option>
-                    <option value="rabbit">Rabbit</option>
-                    <option value="bird">Bird</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Breed</label>
-                <input class="form-control" name="breed" placeholder="e.g. Golden Retriever">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Age</label>
-                <input class="form-control" type="number" name="age" min="0" placeholder="3" required>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Weight (kg)</label>
-                <input class="form-control" type="number" step="0.1" name="weight_kg" min="0" placeholder="4.5" required>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Sex</label>
-                <select class="form-select" name="sex">
-                    <option value="">Not specified</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                </select>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Neutered / Spayed</label>
-                <select class="form-select" name="is_neutered">
-                    <option value="no">No</option>
-                    <option value="yes">Yes</option>
-                </select>
-            </div>
-            <div class="col-12">
-                <label class="form-label">Medical History <span class="text-muted fw-normal">(one per line)</span></label>
-                <textarea class="form-control" name="medical_history" rows="3" placeholder="Vaccinated&#10;No known allergies"></textarea>
-            </div>
-            <div class="col-12">
-                <label class="form-label">Emergency Notes</label>
-                <textarea class="form-control" name="emergency_notes" rows="2" placeholder="Important handling or medication notes"></textarea>
-            </div>
-        </div>
-        <div class="d-flex gap-2 mt-4">
-            <button class="btn btn-primary" type="submit">Save Pet Profile</button>
-            <a class="btn btn-outline-secondary" href="{{ url_for('triage') }}">Go to Triage</a>
-        </div>
-    </div>
-</form>
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="btn btn-primary" href="{{ url_for('pets', mode='add') }}">Add Pet Profile</a>
+    <a class="btn btn-outline-primary" href="{{ url_for('pets', mode='edit') }}">Edit Pet Profile</a>
+</div>
 
 <p class="section-title">Saved Pet Profiles</p>
 {% if pets %}
-    <div class="row g-3">
+    <div class="row g-3 mb-4">
         {% for pet in pets %}
             <div class="col-md-6">
                 <div class="card h-100">
@@ -91,8 +34,9 @@
                             <p class="mb-1"><strong>Medical History:</strong> {{ pet.medical_history }}</p>
                         {% endif %}
                         {% if pet.emergency_notes %}
-                            <p class="mb-0"><strong>Emergency Notes:</strong> {{ pet.emergency_notes }}</p>
+                            <p class="mb-2"><strong>Emergency Notes:</strong> {{ pet.emergency_notes }}</p>
                         {% endif %}
+                        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('pets', mode='edit', pet_id=pet.pet_id) }}">Edit</a>
                     </div>
                 </div>
             </div>
@@ -100,5 +44,101 @@
     </div>
 {% else %}
     <div class="alert alert-info">No pet profiles saved yet.</div>
+{% endif %}
+
+{% if form_mode == "edit" %}
+    <form method="get" class="card mb-4" novalidate>
+        <div class="card-body">
+            <input type="hidden" name="mode" value="edit">
+            <p class="section-title" style="margin-top:0;">Choose Pet to Edit</p>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Saved Pet Profile</label>
+                    <select class="form-select" name="pet_id" required>
+                        <option value="" disabled {% if not selected_pet_id %}selected{% endif %}>Select a saved pet</option>
+                        {% for pet in pets %}
+                            <option value="{{ pet.pet_id }}" {% if pet.pet_id == selected_pet_id %}selected{% endif %}>{{ pet.name }} ({{ pet.species | title }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-outline-primary w-100" type="submit">Load Profile</button>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endif %}
+
+{% if form_mode == "add" or selected_pet %}
+    <form method="post" class="card mb-4" novalidate>
+        <div class="card-body">
+            <input type="hidden" name="action" value="{{ 'edit' if selected_pet else 'add' }}">
+            {% if selected_pet %}
+                <input type="hidden" name="pet_id" value="{{ selected_pet.pet_id }}">
+            {% endif %}
+
+            <p class="section-title" style="margin-top:0;">{{ "Edit Pet Profile" if selected_pet else "Add Pet Profile" }}</p>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Pet Name</label>
+                    <input class="form-control" name="name" value="{{ selected_pet.name if selected_pet else '' }}" placeholder="e.g. Buddy" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Species</label>
+                    {% set selected_species = selected_pet.species if selected_pet else '' %}
+                    <select class="form-select" name="species" required>
+                        <option value="" disabled {% if not selected_species %}selected{% endif %}>Select species</option>
+                        <option value="dog" {% if selected_species == "dog" %}selected{% endif %}>Dog</option>
+                        <option value="cat" {% if selected_species == "cat" %}selected{% endif %}>Cat</option>
+                        <option value="rabbit" {% if selected_species == "rabbit" %}selected{% endif %}>Rabbit</option>
+                        <option value="hamster" {% if selected_species == "hamster" %}selected{% endif %}>Hamster</option>
+                        <option value="guinea pig" {% if selected_species == "guinea pig" %}selected{% endif %}>Guinea Pig</option>
+                        <option value="bird" {% if selected_species == "bird" %}selected{% endif %}>Bird</option>
+                        <option value="tortoise" {% if selected_species == "tortoise" %}selected{% endif %}>Tortoise</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Breed</label>
+                    <input class="form-control" name="breed" value="{{ selected_pet.breed if selected_pet else '' }}" placeholder="e.g. Golden Retriever">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Age</label>
+                    <input class="form-control" type="number" name="age" min="0" value="{{ selected_pet.age if selected_pet else '' }}" placeholder="3" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Weight (kg)</label>
+                    <input class="form-control" type="number" step="0.1" name="weight_kg" min="0" value="{{ selected_pet.weight_kg if selected_pet else '' }}" placeholder="4.5" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Sex</label>
+                    {% set selected_sex = selected_pet.sex if selected_pet else '' %}
+                    <select class="form-select" name="sex">
+                        <option value="" {% if not selected_sex %}selected{% endif %}>Not specified</option>
+                        <option value="male" {% if selected_sex == "male" %}selected{% endif %}>Male</option>
+                        <option value="female" {% if selected_sex == "female" %}selected{% endif %}>Female</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Neutered / Spayed</label>
+                    <select class="form-select" name="is_neutered">
+                        <option value="no" {% if selected_pet and not selected_pet.is_neutered %}selected{% endif %}>No</option>
+                        <option value="yes" {% if selected_pet and selected_pet.is_neutered %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Medical History <span class="text-muted fw-normal">(one per line)</span></label>
+                    <textarea class="form-control" name="medical_history" rows="3" placeholder="Vaccinated&#10;No known allergies">{{ selected_pet.medical_history if selected_pet else '' }}</textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Emergency Notes</label>
+                    <textarea class="form-control" name="emergency_notes" rows="2" placeholder="Important handling or medication notes">{{ selected_pet.emergency_notes if selected_pet else '' }}</textarea>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">{{ "Update Pet Profile" if selected_pet else "Save Pet Profile" }}</button>
+                <a class="btn btn-outline-secondary" href="{{ url_for('pets') }}">Cancel</a>
+            </div>
+        </div>
+    </form>
 {% endif %}
 {% endblock %}

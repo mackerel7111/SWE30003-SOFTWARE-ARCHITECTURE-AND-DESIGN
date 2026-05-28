@@ -14,7 +14,7 @@
     <div class="card-body">
         <p class="section-title" style="margin-top:0;">Pet Details</p>
         <div class="row g-3">
-            <div class="col-md-8">
+            <div class="col-12">
                 <label class="form-label">Saved Pet Profile</label>
                 <select class="form-select" name="pet_id" required>
                     <option value="" disabled selected>Select a saved pet</option>
@@ -22,9 +22,6 @@
                         <option value="{{ pet.pet_id }}">{{ pet.name }} ({{ pet.species | title }}, {{ pet.age }} years)</option>
                     {% endfor %}
                 </select>
-            </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <a class="btn btn-outline-secondary w-100" href="{{ url_for('pets') }}">Manage Pets</a>
             </div>
         </div>
 
@@ -53,7 +50,6 @@
 
         <div class="d-flex gap-2 mt-4">
             <button class="btn btn-primary" type="submit">Evaluate Symptoms</button>
-            <a class="btn btn-outline-secondary" href="{{ url_for('search') }}">Go to Search</a>
         </div>
     </div>
 </form>
