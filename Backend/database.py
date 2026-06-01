@@ -24,7 +24,7 @@ from pymongo.errors import DuplicateKeyError, PyMongoError
 # ---------------------------------------------------------------------------
 MONGO_URI            = "mongodb://localhost:27017/"
 DATABASE_NAME        = "pet_first_aid_db"
-
+    
 COLLECTION_USERS           = "Users"
 COLLECTION_PET_PROFILES    = "PetProfiles"
 COLLECTION_SYMPTOM_RECORDS = "SymptomRecords"
@@ -941,27 +941,145 @@ class Database:
         # ------------------------------------------------------------------
         # 2. VET DETAILS
         # ------------------------------------------------------------------
-        petCareVet = {
-            "clinicName": "PetCare Veterinary Clinic",
-            "licenseNumber": "VET-MY-00123",
-            "specialisations": ["small animals", "emergency care"],
-            "region": "Kuching",
-            "contactInfo": {
-                "phone": "+60312345678",
-                "address": "123 Jalan OTS, Kuching",
-                "email": "petcare@example.com"
-            },
-            "operatingHours": "9:00 AM - 6:00 PM",
-            "createdByStaffId": staff_id,
-            "isActive": True,
-        }
-        if not self._vetDetails.find_one({"clinicName": "PetCare Veterinary Clinic"}):
-            self.insertVetDetails(petCareVet)
-        else:
-            self._vetDetails.update_one(
+        self._vetDetails.delete_many({
+            "$or": [
                 {"clinicName": "PetCare Veterinary Clinic"},
-                {"$set": petCareVet},
-            )
+                {"region": {"$regex": "Kuala Lumpur|KL|Klang Valley", "$options": "i"}},
+                {"contactInfo.address": {"$regex": "Kuala Lumpur|KL|Klang Valley", "$options": "i"}},
+            ]
+        })
+
+        sarawakVets = [
+            {
+                "clinicName": "Animal Central Veterinary Sdn Bhd",
+                "licenseNumber": "SAR-KCH-001",
+                "specialisations": ["small animals", "emergency care"],
+                "region": "Kuching",
+                "contactInfo": {
+                    "phone": "016-9377234",
+                    "address": "Lot 70 Jalan Tabuan, 93100 Kuching, Sarawak",
+                    "email": "",
+                    "mapsLink": "https://maps.app.goo.gl/d5TJ1Rh26ynQcnuRA",
+                },
+                "operatingHours": "24 hours",
+                "createdByStaffId": staff_id,
+                "isActive": True,
+            },
+            {
+                "clinicName": "Anypets Veterinary Clinic",
+                "licenseNumber": "SAR-KCH-002",
+                "specialisations": ["small animals", "general practice"],
+                "region": "Kuching",
+                "contactInfo": {
+                    "phone": "010-2557789",
+                    "address": "No. 45, Ground Floor Lot 20145, Block 11, Milan Square, Jalan Wan Alwi, 93350 Kuching, Sarawak",
+                    "email": "",
+                    "mapsLink": "https://maps.app.goo.gl/3gcTnJYjRGyQ2oDv9",
+                },
+                "operatingHours": "8:00 AM - 8:00 PM",
+                "createdByStaffId": staff_id,
+                "isActive": True,
+            },
+            {
+                "clinicName": "Bettie Veterinary Clinic and Surgery",
+                "licenseNumber": "SAR-MYY-001",
+                "specialisations": ["small animals", "surgery"],
+                "region": "Miri",
+                "contactInfo": {
+                    "phone": "085-439439",
+                    "address": "Lot 1490-1492, Jalan Krokop, 98000 Miri, Sarawak",
+                    "email": "",
+                    "mapsLink": "https://www.google.com/maps/search/?api=1&query=Bettie+Veterinary+Clinic+and+Surgery+Miri",
+                },
+                "operatingHours": "24 hours",
+                "createdByStaffId": staff_id,
+                "isActive": True,
+            },
+            {
+                "clinicName": "J&J Animal Clinic",
+                "licenseNumber": "SAR-MYY-002",
+                "specialisations": ["small animals", "general practice"],
+                "region": "Miri",
+                "contactInfo": {
+                    "phone": "010-9820661",
+                    "address": "Lot 2062, Jalan MS1/6, Marina Square 1, Marina Parkcity, 98000 Miri, Sarawak",
+                    "email": "",
+                    "mapsLink": "https://www.google.com/maps/search/?api=1&query=J%26J+Animal+Clinic+Miri",
+                },
+                "operatingHours": "Contact clinic to confirm operating hours",
+                "createdByStaffId": staff_id,
+                "isActive": True,
+            },
+            {
+                "clinicName": "Alliance Veterinary Clinic",
+                "licenseNumber": "SAR-BTU-001",
+                "specialisations": ["small animals", "general practice"],
+                "region": "Bintulu",
+                "contactInfo": {
+                    "phone": "086-316339",
+                    "address": "Shophouse 69, Ground Floor, Jalan Tun Hussein Onn, Taman Tinggi, 97000 Bintulu, Sarawak",
+                    "email": "",
+                    "mapsLink": "https://www.google.com/maps/search/?api=1&query=Alliance+Veterinary+Clinic+Bintulu",
+                },
+                "operatingHours": "8:00 AM - 8:00 PM",
+                "createdByStaffId": staff_id,
+                "isActive": True,
+            },
+            {
+                "clinicName": "Cheng Animal Clinic & Surgery",
+                "licenseNumber": "SAR-BTU-002",
+                "specialisations": ["small animals", "surgery"],
+                "region": "Bintulu",
+                "contactInfo": {
+                    "phone": "011-125158613",
+                    "address": "SL253, Lot 946, Jalan Tanjong Batu, Kemena Commercial Centre, 97000 Bintulu, Sarawak",
+                    "email": "",
+                    "mapsLink": "https://www.google.com/maps/search/?api=1&query=Cheng+Animal+Clinic+and+Surgery+Bintulu",
+                },
+                "operatingHours": "Contact clinic to confirm operating hours",
+                "createdByStaffId": staff_id,
+                "isActive": True,
+            },
+            {
+                "clinicName": "Central Veterinary Clinic",
+                "licenseNumber": "SAR-SBW-001",
+                "specialisations": ["small animals", "general practice"],
+                "region": "Sibu",
+                "contactInfo": {
+                    "phone": "084-333339",
+                    "address": "No. 14, Ground Floor, Jalan Merdeka Barat, 96000 Sibu, Sarawak",
+                    "email": "",
+                    "mapsLink": "https://www.google.com/maps/search/?api=1&query=Central+Veterinary+Clinic+Sibu",
+                },
+                "operatingHours": "8:00 AM - 8:00 PM",
+                "createdByStaffId": staff_id,
+                "isActive": True,
+            },
+            {
+                "clinicName": "Pawsitive Vet Clinic",
+                "licenseNumber": "SAR-SBW-002",
+                "specialisations": ["small animals", "general practice"],
+                "region": "Sibu",
+                "contactInfo": {
+                    "phone": "084-311868",
+                    "address": "No. 104, Ground Floor, Lorong 4, Jalan Sungai Merah, 96000 Sibu, Sarawak",
+                    "email": "",
+                    "mapsLink": "https://www.google.com/maps/search/?api=1&query=Pawsitive+Vet+Clinic+Sibu",
+                },
+                "operatingHours": "24 hours",
+                "createdByStaffId": staff_id,
+                "isActive": True,
+            },
+        ]
+
+        for vet in sarawakVets:
+            if not self._vetDetails.find_one({"clinicName": vet["clinicName"]}):
+                self.insertVetDetails(vet)
+            else:
+                self._vetDetails.update_one(
+                    {"clinicName": vet["clinicName"]},
+                    {"$set": vet},
+                )
 
         # ------------------------------------------------------------------
         # 3. PET PROFILES
@@ -1250,40 +1368,72 @@ class Database:
         # ------------------------------------------------------------------
         # 5. INSTRUCTIONAL VIDEOS
         # ------------------------------------------------------------------
+        self._videos.delete_many({
+            "$or": [
+                {"url": {"$regex": "example.com", "$options": "i"}},
+                {"title": {"$in": [
+                    "How to Perform Dog CPR",
+                    "Recognising Heatstroke Symptoms",
+                    "Cat Wound First Aid",
+                ]}},
+            ]
+        })
+
         videos = [
             {
-                "title":           "How to Perform Dog CPR",
+                "title":           "Dog First-Aid Video Guide",
                 "species":         "dog",
-                "url":             "https://example.com/videos/dog-cpr",
+                "url":             "https://youtu.be/p_Xw_LaofEQ?si=JDcjKQ1qJ1UbRIhD",
                 "durationSeconds": 312,
-                "description":     "Step-by-step guide to performing CPR on a dog, "
-                                   "including chest compressions and rescue breathing.",
+                "description":     "Video guide for dog first-aid awareness and emergency response.",
                 "uploadedBy":      vet1_id,
                 "isApproved":      True,
                 "viewCount":       0,
-                "tags":            ["cpr", "resuscitation", "emergency"],
+                "tags":            ["dog", "first aid", "emergency"],
             },
             {
-                "title":           "Recognising Heatstroke Symptoms",
-                "species":         "dog",
-                "url":             "https://example.com/videos/dog-heatstroke",
-                "durationSeconds": 180,
-                "description":     "Visual guide to identifying heatstroke symptoms in dogs.",
-                "uploadedBy":      vet1_id,
-                "isApproved":      True,
-                "viewCount":       0,
-                "tags":            ["heatstroke", "symptoms", "prevention"],
-            },
-            {
-                "title":           "Cat Wound First Aid",
+                "title":           "Cat First-Aid Video Guide",
                 "species":         "cat",
-                "url":             "https://example.com/videos/cat-wound-care",
-                "durationSeconds": 240,
-                "description":     "Demonstration of safe wound cleaning and bandaging for cats.",
+                "url":             "https://youtu.be/vAqAxdhPFA8?si=kDoiVP9oUWA47-rr",
+                "durationSeconds": 180,
+                "description":     "Video guide for cat first-aid awareness and emergency response.",
                 "uploadedBy":      vet1_id,
                 "isApproved":      True,
                 "viewCount":       0,
-                "tags":            ["wound", "first aid", "cat"],
+                "tags":            ["cat", "first aid", "emergency"],
+            },
+            {
+                "title":           "Hamster First-Aid Video Guide",
+                "species":         "hamster",
+                "url":             "https://youtu.be/WcMnNj7uwxI?si=3QGzr_xrVLfQU_M1",
+                "durationSeconds": 240,
+                "description":     "Video guide for hamster care and first-aid awareness.",
+                "uploadedBy":      vet1_id,
+                "isApproved":      True,
+                "viewCount":       0,
+                "tags":            ["hamster", "first aid", "small pets"],
+            },
+            {
+                "title":           "Guinea Pig First-Aid Video Guide",
+                "species":         "guinea pig",
+                "url":             "https://youtu.be/0tCVun6A9WI?si=9ian5EkMcIhVLfx1",
+                "durationSeconds": 240,
+                "description":     "Video guide for guinea pig care and first-aid awareness.",
+                "uploadedBy":      vet1_id,
+                "isApproved":      True,
+                "viewCount":       0,
+                "tags":            ["guinea pig", "first aid", "small pets"],
+            },
+            {
+                "title":           "Bird First-Aid Video Guide",
+                "species":         "bird",
+                "url":             "https://youtu.be/ZxI7m-YiPZE?si=0-sJDStul8YxN2Fp",
+                "durationSeconds": 240,
+                "description":     "Video guide for bird care and first-aid awareness.",
+                "uploadedBy":      vet1_id,
+                "isApproved":      True,
+                "viewCount":       0,
+                "tags":            ["bird", "first aid", "small pets"],
             },
         ]
 
@@ -1295,18 +1445,53 @@ class Database:
         # ------------------------------------------------------------------
         # 6. REGIONAL ALERTS
         # ------------------------------------------------------------------
-        if not self._alerts.find_one({"title": "Canine Parvovirus Outbreak — Klang Valley"}):
-            self.insertAlert({
-                "title":       "Canine Parvovirus Outbreak — Klang Valley",
-                "description": "Multiple unvaccinated dogs in Klang Valley have tested "
-                               "positive for parvovirus. Ensure dogs are vaccinated and "
-                               "avoid contact with unknown dogs.",
+        self._alerts.delete_many({
+            "$or": [
+                {"title": {"$regex": "Klang Valley|Kuala Lumpur|KL", "$options": "i"}},
+                {"description": {"$regex": "Klang Valley|Kuala Lumpur|KL", "$options": "i"}},
+                {"region": {"$regex": "Klang Valley|Kuala Lumpur|KL", "$options": "i"}},
+            ]
+        })
+
+        alerts = [
+            {
+                "title":       "Kuching Pet Vaccination Reminder",
+                "description": "Demo advisory: Pet owners in Kuching should keep dog and cat vaccination records up to date and contact local veterinary clinics for appointment availability.",
                 "region":      "Kuching",
+                "severity":    URGENCY_NON_URGENT,
+                "isActive":    True,
+                "createdBy":   staff_id,
+            },
+            {
+                "title":       "Miri Heat Stress Advisory",
+                "description": "Demo advisory: During hot weather in Miri, keep pets shaded, hydrated, and avoid outdoor activity during peak afternoon heat.",
+                "region":      "Miri",
                 "severity":    URGENCY_URGENT,
                 "isActive":    True,
                 "createdBy":   staff_id,
-            })
-            logger.info("Seeded regional alert.")
+            },
+            {
+                "title":       "Bintulu Tick and Flea Prevention Advisory",
+                "description": "Demo advisory: Pet owners in Bintulu should check pets for ticks and fleas after outdoor activity and seek veterinary advice for safe preventatives.",
+                "region":      "Bintulu",
+                "severity":    URGENCY_NON_URGENT,
+                "isActive":    True,
+                "createdBy":   staff_id,
+            },
+            {
+                "title":       "Sibu Puppy and Kitten Illness Watch",
+                "description": "Demo advisory: Young pets in Sibu showing vomiting, diarrhoea, weakness, or loss of appetite should be checked by a veterinarian promptly.",
+                "region":      "Sibu",
+                "severity":    URGENCY_URGENT,
+                "isActive":    True,
+                "createdBy":   staff_id,
+            },
+        ]
+
+        for alert in alerts:
+            if not self._alerts.find_one({"title": alert["title"]}):
+                self.insertAlert(alert)
+                logger.info("Seeded regional alert: %s", alert["title"])
 
         # ------------------------------------------------------------------
         # 7. EDUCATIONAL QUIZ

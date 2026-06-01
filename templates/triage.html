@@ -3,8 +3,12 @@
 {% block title %}Triage | Pet First Aid{% endblock %}
 
 {% block content %}
-<h1 class="h3">Symptom Triage</h1>
-<p class="text-muted">Select a saved pet profile and describe the symptoms. The system will assess urgency and provide first-aid guidance.</p>
+<div class="page-header">
+    <div>
+        <h1 class="h3">Symptom Triage</h1>
+        <p class="text-muted mb-0">Select a saved pet profile and describe the symptoms. The system will assess urgency and provide first-aid guidance.</p>
+    </div>
+</div>
 
 {% if error %}
     <div class="alert alert-danger">{{ error }}</div>
@@ -48,7 +52,7 @@
             </div>
         </div>
 
-        <div class="d-flex gap-2 mt-4">
+        <div class="form-actions">
             <button class="btn btn-primary" type="submit">Evaluate Symptoms</button>
         </div>
     </div>
@@ -79,10 +83,12 @@
                 <div class="alert alert-danger py-2">
                     <strong>High urgency - seek professional veterinary care immediately.</strong>
                 </div>
+                <a class="btn btn-outline-danger mb-3" href="{{ result.vet_search_url }}">Locate Nearby Vet</a>
             {% elif result.should_contact_vet %}
                 <div class="alert alert-warning py-2">
                     <strong>Medium urgency - contact a veterinarian soon and monitor your pet closely.</strong>
                 </div>
+                <a class="btn btn-outline-warning mb-3" href="{{ result.vet_search_url }}">Locate Nearby Vet</a>
             {% else %}
                 <div class="alert alert-info py-2">
                     Monitor your pet closely. Seek veterinary care if symptoms worsen.

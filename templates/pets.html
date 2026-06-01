@@ -3,8 +3,16 @@
 {% block title %}Pet Profiles | Pet First Aid{% endblock %}
 
 {% block content %}
-<h1 class="h3">My Pet Profiles</h1>
-<p class="text-muted">Save pet details once, then select the pet during symptom triage.</p>
+<div class="page-header">
+    <div>
+        <h1 class="h3">My Pet Profiles</h1>
+        <p class="text-muted mb-0">Save pet details once, then select the pet during symptom triage.</p>
+    </div>
+    <div class="page-header-actions">
+        <a class="btn btn-primary" href="{{ url_for('pets', mode='add') }}">Add Pet Profile</a>
+        <a class="btn btn-outline-primary" href="{{ url_for('pets', mode='edit') }}">Edit Pet Profile</a>
+    </div>
+</div>
 
 {% if message %}
     <div class="alert alert-success">{{ message }}</div>
@@ -13,12 +21,6 @@
 {% if error %}
     <div class="alert alert-danger">{{ error }}</div>
 {% endif %}
-
-<p class="section-title">Actions</p>
-<div class="page-actions d-flex flex-wrap gap-2 mb-4">
-    <a class="btn btn-primary" href="{{ url_for('pets', mode='add') }}">Add Pet Profile</a>
-    <a class="btn btn-outline-primary" href="{{ url_for('pets', mode='edit') }}">Edit Pet Profile</a>
-</div>
 
 {% if form_mode == "edit" %}
     <form method="get" class="card pet-form-card mb-4" novalidate>
@@ -108,7 +110,7 @@
                     <textarea class="form-control" name="emergency_notes" rows="2" placeholder="Important handling or medication notes">{{ selected_pet.emergency_notes if selected_pet else '' }}</textarea>
                 </div>
             </div>
-            <div class="d-flex gap-2 mt-4">
+            <div class="form-actions">
                 <button class="btn btn-primary" type="submit">{{ "Update Pet Profile" if selected_pet else "Save Pet Profile" }}</button>
                 <a class="btn btn-outline-secondary" href="{{ url_for('pets') }}">Cancel</a>
             </div>
@@ -131,6 +133,7 @@
                             <span>{{ pet.age }} yrs</span>
                             <span>{{ pet.weight_kg }} kg</span>
                         </div>
+                        <span class="expand-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
                     </summary>
                     <div class="pet-card-body">
                         <h2 class="h5 mb-1">{{ pet.name }}</h2>

@@ -81,9 +81,29 @@ h1.h3 {
     margin-bottom: 1.25rem !important;
 }
 
+/* ── Page header ── */
+.page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.page-header .text-muted {
+    margin-bottom: 0 !important;
+}
+
+.page-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
 /* ── Cards ── */
 .card {
-    max-width: 960px;
+    width: 100%;
     border: 1px solid var(--pfa-border);
     border-radius: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -92,6 +112,81 @@ h1.h3 {
 
 .card-body {
     padding: 1.4rem 1.5rem;
+}
+
+/* Expandable cards */
+.expand-card {
+    border: 1px solid var(--pfa-border);
+    border-radius: 10px;
+    background: var(--pfa-surface);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.expand-card summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #f8fafc;
+}
+
+.expand-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.expand-card summary:hover {
+    background: #f1f5f9;
+}
+
+.expand-card summary:focus-visible {
+    outline: 2px solid var(--pfa-primary);
+    outline-offset: 2px;
+}
+
+.expand-card[open] summary {
+    border-bottom: 1px solid var(--pfa-border);
+}
+
+.expand-card .expand-title {
+    font-size: 0.96rem;
+    font-weight: 600;
+    color: var(--pfa-text);
+    margin-bottom: 0.15rem;
+}
+
+.expand-card .expand-meta {
+    font-size: 0.8rem;
+    color: var(--pfa-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+}
+
+.expand-card .expand-body {
+    padding: 0.95rem 1.1rem 1.1rem;
+    font-size: 0.9rem;
+}
+
+.expand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: transform 0.2s ease;
+}
+
+.expand-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.2;
+}
+
+.expand-card[open] .expand-icon {
+    transform: rotate(180deg);
 }
 
 /* Dashboard action cards */
@@ -207,6 +302,14 @@ h1.h3 {
     background-image: none;
 }
 
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1.1rem;
+}
+
 /* ── Buttons ── */
 .btn {
     border-radius: 7px;
@@ -318,7 +421,7 @@ pre {
     padding: 0.65rem 0.8rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 0.7rem;
     transition: background 0.15s ease;
 }
@@ -355,6 +458,15 @@ pre {
     font-size: 0.78rem;
     color: var(--pfa-muted);
     white-space: nowrap;
+    margin-left: auto;
+}
+
+.pet-card .expand-icon {
+    color: #94a3b8;
+}
+
+.pet-card[open] .expand-icon {
+    transform: rotate(180deg);
 }
 
 .pet-card-body {

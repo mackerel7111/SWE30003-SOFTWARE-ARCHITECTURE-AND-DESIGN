@@ -3,8 +3,12 @@
 {% block title %}Search | Pet First Aid{% endblock %}
 
 {% block content %}
-<h1 class="h3">Search</h1>
-<p class="text-muted">Choose whether to search first-aid guides, instructional videos, or vet clinics by region.</p>
+<div class="page-header">
+    <div>
+        <h1 class="h3">Search</h1>
+        <p class="text-muted mb-0">Choose whether to search first-aid guides, instructional videos, or vet clinics by region.</p>
+    </div>
+</div>
 
 <form method="post" class="card mb-4" novalidate>
     <div class="card-body">
@@ -50,19 +54,25 @@
     <p class="section-title">First-Aid Guides</p>
     {% if guides %}
         {% for guide in guides %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h3 class="h5 mb-2">{{ guide.emergency_category | title }}</h3>
+            <details class="expand-card mb-3">
+                <summary>
+                    <div>
+                        <div class="expand-title">{{ guide.emergency_category | title }}</div>
+                        <div class="expand-meta">Steps: {{ guide.step_by_step_instruction | length }}</div>
+                    </div>
+                    <span class="expand-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+                </summary>
+                <div class="expand-body">
                     <ol class="mb-0">
                         {% for step in guide.step_by_step_instruction %}
                             <li>{{ step }}</li>
                         {% endfor %}
                     </ol>
                 </div>
-            </div>
+            </details>
         {% endfor %}
     {% else %}
-        <div class="alert alert-info">No first-aid guides found for <strong>{{ keyword }}</strong>.</div>
+        <div class="alert alert-info">No first-aid guides found for <strong>{{ selected_species | title }}</strong> and <strong>{{ keyword }}</strong>.</div>
     {% endif %}
 
 {% endif %}
@@ -71,16 +81,25 @@
     <p class="section-title">Instructional Videos</p>
     {% if videos %}
         {% for video in videos %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h3 class="h5 mb-1">{{ video.title }}</h3>
-                    <p class="text-muted mb-1" style="font-size:0.85rem;">{{ video.species }} | {{ video.duration }} | Tags: {{ video.tags }}</p>
+            <details class="expand-card mb-3">
+                <summary>
+                    <div>
+                        <div class="expand-title">{{ video.title }}</div>
+                        <div class="expand-meta">
+                            <span>{{ video.species }}</span>
+                            <span>{{ video.duration }}</span>
+                            <span>Tags: {{ video.tags }}</span>
+                        </div>
+                    </div>
+                    <span class="expand-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+                </summary>
+                <div class="expand-body">
                     {% if video.description %}
                         <p class="mb-2">{{ video.description }}</p>
                     {% endif %}
                     <a href="{{ video.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">Open Video</a>
                 </div>
-            </div>
+            </details>
         {% endfor %}
     {% else %}
         <div class="alert alert-info">No instructional videos found for <strong>{{ keyword }}</strong>.</div>
@@ -91,17 +110,32 @@
     <p class="section-title">Vet Clinics</p>
     {% if clinics %}
         {% for clinic in clinics %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h3 class="h5 mb-1">{{ clinic.clinic_name }}</h3>
-                    <p class="text-muted mb-1" style="font-size:0.85rem;">
-                        <span class="inline-icon" aria-hidden="true"><i data-lucide="map-pin"></i></span>{{ clinic.region }}
-                        &nbsp;|&nbsp;
-                        <span class="inline-icon" aria-hidden="true"><i data-lucide="clock"></i></span>{{ clinic.operating_hours }}
-                    </p>
+            <details class="expand-card mb-3">
+                <summary>
+                    <div>
+                        <div class="expand-title">{{ clinic.clinic_name }}</div>
+                        <div class="expand-meta">
+                            <span><span class="inline-icon" aria-hidden="true"><i data-lucide="map-pin"></i></span>{{ clinic.region }}</span>
+                            <span><span class="inline-icon" aria-hidden="true"><i data-lucide="clock"></i></span>{{ clinic.operating_hours }}</span>
+                        </div>
+                    </div>
+                    <span class="expand-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+                </summary>
+                <div class="expand-body">
+                    <div class="mb-3">
+                        {% if clinic.phone %}
+                            <div><span class="inline-icon" aria-hidden="true"><i data-lucide="phone"></i></span>{{ clinic.phone }}</div>
+                        {% endif %}
+                        {% if clinic.address %}
+                            <div><span class="inline-icon" aria-hidden="true"><i data-lucide="map"></i></span>{{ clinic.address }}</div>
+                        {% endif %}
+                        {% if clinic.email %}
+                            <div><span class="inline-icon" aria-hidden="true"><i data-lucide="mail"></i></span>{{ clinic.email }}</div>
+                        {% endif %}
+                    </div>
                     <a href="{{ clinic.google_maps_link }}" target="_blank" class="btn btn-sm btn-outline-secondary">View on Map</a>
                 </div>
-            </div>
+            </details>
         {% endfor %}
     {% else %}
         <div class="alert alert-info">No clinics found for region <strong>{{ keyword }}</strong>.</div>
@@ -136,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
             keyword.required = false;
         } else {
             keywordGroup.style.display = '';
-            speciesGroup.style.display = 'none';
+            speciesGroup.style.display = '';
             keyword.required = true;
             keywordLabel.textContent = 'Symptom Keyword';
             keyword.placeholder = 'e.g. vomiting';

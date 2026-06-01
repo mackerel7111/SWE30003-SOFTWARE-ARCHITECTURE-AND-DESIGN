@@ -3,20 +3,23 @@
 {% block title %}Dashboard | Pet First Aid{% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center gap-2 mb-1">
-    <h1 class="h3 mb-0">Dashboard</h1>
-    {% if current_role == "PetOwner" %}
-        <span class="role-badge owner">Pet Owner</span>
-    {% elif current_role == "AssociationStaff" %}
-        <span class="role-badge staff">Association Staff</span>
-    {% elif current_role == "VeterinaryPartner" %}
-        <span class="role-badge vet">Veterinary Partner</span>
-    {% endif %}
+<div class="page-header">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h1 class="h3 mb-0">Dashboard</h1>
+            {% if current_role == "PetOwner" %}
+                <span class="role-badge owner">Pet Owner</span>
+            {% elif current_role == "AssociationStaff" %}
+                <span class="role-badge staff">Association Staff</span>
+            {% elif current_role == "VeterinaryPartner" %}
+                <span class="role-badge vet">Veterinary Partner</span>
+            {% endif %}
+        </div>
+        {% if current_user %}
+            <p class="text-muted mb-0">Signed in as <strong>{{ current_user.email_address }}</strong></p>
+        {% endif %}
+    </div>
 </div>
-
-{% if current_user %}
-    <p class="text-muted">Signed in as <strong>{{ current_user.email_address }}</strong></p>
-{% endif %}
 
 <div class="row g-3 mt-1">
     {% if current_role == "PetOwner" %}

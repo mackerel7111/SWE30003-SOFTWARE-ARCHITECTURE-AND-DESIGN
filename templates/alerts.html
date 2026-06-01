@@ -3,8 +3,12 @@
 {% block title %}Alerts | Pet First Aid{% endblock %}
 
 {% block content %}
-<h1 class="h3">Regional Alerts</h1>
-<p class="text-muted">View local alerts or create new regional health alerts.</p>
+<div class="page-header">
+    <div>
+        <h1 class="h3">Regional Alerts</h1>
+        <p class="text-muted mb-0">View local alerts or create new regional health alerts.</p>
+    </div>
+</div>
 
 {% if current_role == "PetOwner" and saved_region %}
     <div class="alert alert-info">Your registered region is <strong>{{ saved_region }}</strong>. You can type another region when fetching alerts.</div>
@@ -60,7 +64,7 @@
                     <textarea class="form-control" name="message" rows="3" placeholder="Describe the health alert..." required></textarea>
                 </div>
             </div>
-            <div class="d-flex gap-2 mt-4">
+            <div class="form-actions">
                 <button class="btn btn-primary" type="submit">Create Alert</button>
                 <a class="btn btn-outline-secondary" href="{{ url_for('alerts') }}">Cancel</a>
             </div>
@@ -91,16 +95,24 @@
     {% if alerts %}
         {% for alert in alerts %}
             {% set u = alert.urgency_level | lower %}
-            <div class="card mb-3 result-card {{ u }}">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <h3 class="h5 mb-1">{{ alert.title }}</h3>
-                        <span class="urgency-{{ u }}">{{ alert.urgency_level }}</span>
+            <details class="expand-card mb-3 result-card {{ u }}">
+                <summary>
+                    <div>
+                        <div class="expand-title">{{ alert.title }}</div>
+                        <div class="expand-meta">
+                            <span>{{ alert.target_region }}</span>
+                            <span>{{ alert.date_issued }}</span>
+                        </div>
                     </div>
-                    <p class="mb-1">{{ alert.message }}</p>
-                    <p class="text-muted mb-0" style="font-size:0.82rem;">{{ alert.target_region }} | {{ alert.date_issued }}</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="urgency-{{ u }}">{{ alert.urgency_level }}</span>
+                        <span class="expand-icon" aria-hidden="true"><i data-lucide="chevron-down"></i></span>
+                    </div>
+                </summary>
+                <div class="expand-body">
+                    <p class="mb-0">{{ alert.message }}</p>
                 </div>
-            </div>
+            </details>
         {% endfor %}
     {% else %}
         <div class="alert alert-info">No active alerts found for <strong>{{ region }}</strong>.</div>
