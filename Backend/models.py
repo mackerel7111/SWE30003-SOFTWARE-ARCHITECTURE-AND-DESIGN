@@ -299,7 +299,7 @@ class AssociationStaff(User):
     ----------
     staffId : str
         Internal employee ID.
-    department : str
+    department : str    
         Department the staff member belongs to.
     permissions : list[str]
         List of permission strings granted to this account.
