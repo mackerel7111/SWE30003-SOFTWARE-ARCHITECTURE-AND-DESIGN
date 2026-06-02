@@ -19,7 +19,6 @@ from .pet_owner import PetOwner
 from .association_staff import AssociationStaff
 from .veterinary_partner import VeterinaryPartner
 from .pet_profile import PetProfile
-from .symptom import Symptom
 from .first_aid_guide import FirstAidGuide
 from .instructional_video import InstructionalVideo
 from .vet_details import VetDetails
@@ -38,6 +37,6 @@ __all__ = [
     "DIFFICULTY_BEGINNER", "DIFFICULTY_INTERMEDIATE", "DIFFICULTY_ADVANCED",
     "VALID_DIFFICULTIES", "EMAIL_REGEX",
     "User", "PetOwner", "AssociationStaff", "VeterinaryPartner", "PetProfile",
-    "Symptom", "FirstAidGuide", "InstructionalVideo", "VetDetails", "RegionalAlert",
+    "FirstAidGuide", "InstructionalVideo", "VetDetails", "RegionalAlert",
     "ApprovalRequest", "QuizQuestion", "QuizFeedback", "EducationalQuiz",
 ]

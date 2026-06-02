@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from Backend.database import Database
 from Backend.models import (
     PetOwner, AssociationStaff, VeterinaryPartner, PetProfile,
-    Symptom, FirstAidGuide, InstructionalVideo, VetDetails,
+    FirstAidGuide, InstructionalVideo, VetDetails,
     RegionalAlert, ApprovalRequest, EducationalQuiz, QuizQuestion, QuizFeedback,
     ROLE_PET_OWNER, ROLE_ASSOCIATION_STAFF, ROLE_VET_PARTNER,
     STATUS_PENDING, STATUS_APPROVED, STATUS_REJECTED
