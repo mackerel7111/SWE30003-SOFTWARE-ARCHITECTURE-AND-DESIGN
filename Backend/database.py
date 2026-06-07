@@ -3,7 +3,7 @@ database.py — Data Access Layer
 Pet First-Aid Web Application
 
 This module is the **sole** file permitted to import ``pymongo``.
-It implements a Singleton ``Database`` class that acts as the exclusive
+It implements a Singleton ``Database`` class that acts as the exclusive 
 gateway to the MongoDB instance.  All collection access, query execution,
 and atomic write operations are centralised here to enforce a single
 connection pool and prevent race conditions.

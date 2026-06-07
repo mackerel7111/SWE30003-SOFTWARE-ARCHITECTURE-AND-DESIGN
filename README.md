@@ -17,16 +17,54 @@ TECH STACK
 PROJECT STRUCTURE
 ------------------------------------------------------------
 PetFirstAid/
-  main.py                Flask application entry point (routing layer)
+  main.py                      Flask application entry point
+  app_context.py               Application initialization
+  app_routing.py               Flask route configuration
+  pyproject.toml               Project dependencies and metadata
   Backend/
-    models.py           Entity layer (domain objects)
-    services.py         Control layer (business logic)
-    database.py         Boundary layer (MongoDB interface)
-    app_routing.py      Route handling
-    app_context.py      Application initialization
-  templates/            HTML templates (UI layer)
-  static/               CSS and static files
-  Backend/requirements.txt
+    database.py                Boundary layer (MongoDB interface)
+    requirements.txt           Python dependencies
+    models/                    Entity layer (domain objects)
+      user.py
+      pet_owner.py
+      veterinary_partner.py
+      association_staff.py
+      pet_profile.py
+      first_aid_guide.py
+      instructional_video.py
+      educational_quiz.py
+      quiz_question.py
+      quiz_feedback.py
+      approval_request.py
+      regional_alert.py
+      vet_details.py
+      common.py
+    services/                  Control layer (business logic)
+      authentication_manager.py
+      content_moderator.py
+      content_repository.py
+      search_engine.py
+      triage_engine.py
+      alert_broadcaster.py
+  web/                         Session and template helper utilities
+    session_helpers.py
+    template_adapters.py
+  routes/                      Route handlers
+  templates/                   HTML templates (UI layer)
+    base.html
+    login.html
+    register.html
+    dashboard.html
+    pets.html
+    quiz.html
+    search.html
+    alerts.html
+    triage.html
+    vet_details.html
+    moderation.html
+    submit_content.html
+  static/                      CSS and static files
+    style.css
 
 ------------------------------------------------------------
 SYSTEM OVERVIEW
