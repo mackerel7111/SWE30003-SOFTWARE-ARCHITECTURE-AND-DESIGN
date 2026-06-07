@@ -1,70 +1,87 @@
-# PetFirstAid
+PetFirstAid
 
-PetFirstAid is a simple Flask web prototype for the SWE30003 Software Architecture and Design Assignment 3 implementation. The backend follows the object-oriented Boundary-Control-Entity structure from the Assignment 2 design.
+PetFirstAid is a Flask-based web prototype developed for the SWE30003 Software Architecture and Design Assignment 3.
+The system implements an object-oriented Boundary–Control–Entity (BCE) architecture and demonstrates a fully functional web application using MongoDB for persistent storage.
 
-## Tech Stack
+------------------------------------------------------------
+TECH STACK
+------------------------------------------------------------
+- Python 3.8+
+- Flask (web framework)
+- Jinja2 (HTML templating)
+- Bootstrap (via CDN)
+- MongoDB (local database)
+- pip (dependency management)
 
-- Python
-- Flask
-- Jinja2 HTML templates
-- Bootstrap via CDN
-- MongoDB through the backend Database wrapper
-- uv or pip for dependency and environment management
-
-## Project Structure
-
-```text
+------------------------------------------------------------
+PROJECT STRUCTURE
+------------------------------------------------------------
 PetFirstAid/
-  main.py              Flask application entry point
+  main.py                Flask application entry point (routing layer)
   Backend/
-    models.py          Entity/domain classes
-    services.py        Control/service classes
-    database.py        MongoDB persistence boundary
-  templates/           HTML templates rendered by Flask/Jinja2
-  static/              CSS/static assets
-  pyproject.toml       Project dependencies
-  uv.lock              Locked dependency versions
-```
+    models.py           Entity layer (domain objects)
+    services.py         Control layer (business logic)
+    database.py         Boundary layer (MongoDB interface)
+    app_routing.py      Route handling
+    app_context.py      Application initialization
+  templates/            HTML templates (UI layer)
+  static/               CSS and static files
+  Backend/requirements.txt
 
-## Setup
+------------------------------------------------------------
+SYSTEM OVERVIEW
+------------------------------------------------------------
+PetFirstAid is a role-based veterinary assistance system for:
 
-From the project folder:
+- Pet Owners
+- Association Staff
+- Veterinary Partners
 
-```powershell
-uv sync
-```
+The system supports:
+- Pet symptom triage and urgency evaluation
+- First-aid guidance and vet recommendations
+- Veterinary content submission and moderation
+- Regional alerts broadcast and retrieval
+- Pet profile management
+- Educational quizzes
 
-If `uv` is not available, install Flask in your active Python environment:
+All data is stored in MongoDB and automatically seeded with demo data on first run.
 
-```powershell
-pip install -r Backend\requirements.txt
-```
+------------------------------------------------------------
+SETUP INSTRUCTIONS
+------------------------------------------------------------
 
-Make sure MongoDB is installed and running locally before starting the app.
+1. Navigate to project directory:
+cd PetFirstAid
 
-## Run
+2. Install dependencies:
+python -m pip install -r Backend\requirements.txt
 
-With the project virtual environment active:
+3. Start MongoDB:
+net start MongoDB
 
-```powershell
+4. Optional: Check for syntax errors:
+python -m compileall Backend app_routing.py app_context.py main.py web
+
+------------------------------------------------------------
+RUN APPLICATION
+------------------------------------------------------------
+
+Standard run:
 python main.py
-```
 
-Or with uv:
-
-```powershell
+Using uv (optional):
 uv run python main.py
-```
 
-Open the app at:
+------------------------------------------------------------
+ACCESS APPLICATION
+------------------------------------------------------------
+http://127.0.0.1:5000
 
-```text
-http://127.0.0.1:5000/login
-```
+------------------------------------------------------------
+DEMO ACCOUNTS
+------------------------------------------------------------
 
-## Demo Accounts
-
-```text
 Pet Owner:
 owner@example.com / ownerpass
 
@@ -73,19 +90,39 @@ staff@example.com / staffpass
 
 Veterinary Partner:
 vet@example.com / vetpass
-```
 
-## Implemented Demo Flows
-
-- Login and role-aware dashboard
-- Pet symptom triage with urgency result
-- First-aid guide and clinic search
-- Regional alert creation and lookup
-- Veterinary partner content submission
-- Staff moderation approval/rejection
-- Staff-maintained vet clinic directory records
+------------------------------------------------------------
+IMPLEMENTED FEATURES
+------------------------------------------------------------
+- User login and role-based dashboard
+- Pet symptom triage with urgency output
+- First-aid guidance and vet suggestions
+- Veterinary clinic search with Google Maps integration
+- Regional alerts system (create and fetch alerts)
+- Veterinary content submission and moderation workflow
+- Pet profile management (add/edit/view)
 - Educational quizzes
 
-## Notes
+------------------------------------------------------------
+SYSTEM BEHAVIOR
+------------------------------------------------------------
+- Flask handles routing and session control
+- MongoDB stores all persistent data
+- BCE architecture separates:
+  - Entities (data models)
+  - Controls (business logic)
+  - Boundaries (database access)
+- Demo data is automatically seeded on first execution
 
-This is an assignment prototype. Data is persisted in a local MongoDB database through the `Backend/database.py` wrapper. Flask routes in `main.py` act as the AppRouting/boundary layer that connects the HTML templates to the object-oriented backend classes.
+------------------------------------------------------------
+LOGOUT & ACCESS CONTROL
+------------------------------------------------------------
+- /logout clears the user session
+- Users are redirected to login page
+- Ensures secure role-based access control
+
+------------------------------------------------------------
+NOTES
+------------------------------------------------------------
+This is an academic prototype developed for software architecture evaluation.
+It demonstrates full-stack integration using Flask, MongoDB, and object-oriented BCE design principles.
